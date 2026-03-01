@@ -19,6 +19,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
 }
@@ -78,16 +82,19 @@ body {
 }
 
 .link-button {
-  background: none;
+  background: transparent;
   border: none;
   color: var(--primary);
   font-weight: 700;
   padding: 0;
   margin-left: 6px;
   cursor: pointer;
+  border-radius: 0;
+  transition: color 0.15s ease-in-out, text-decoration-color 0.15s ease-in-out;
 }
 
 .link-button:hover {
+  background: transparent;
   color: var(--primary-hover);
   text-decoration: underline;
 }
