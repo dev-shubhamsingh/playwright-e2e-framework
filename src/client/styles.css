@@ -51,12 +51,12 @@ body {
   box-shadow: var(--shadow);
 }
 
-#home-view {
+.auth-view {
   display: grid;
   gap: 18px;
 }
 
-#home-view h1 {
+.auth-view h1 {
   margin: 0 0 8px;
 }
 
@@ -66,12 +66,30 @@ body {
   line-height: 1.6;
 }
 
-#login-section,
-#signup-section {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  background: linear-gradient(160deg, #ffffff 0%, #f9fcff 100%);
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+}
+
+.switch-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  padding: 0;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
 }
 
 #dashboard-view {
@@ -182,10 +200,5 @@ li {
 @media (max-width: 760px) {
   .card {
     padding: 14px;
-  }
-
-  #login-section,
-  #signup-section {
-    padding: 12px;
   }
 }

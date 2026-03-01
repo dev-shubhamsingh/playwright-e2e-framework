@@ -11,12 +11,15 @@ type EventItem = {
   owner: string;
 };
 
-const homeView = document.getElementById("home-view") as HTMLElement | null;
+const loginView = document.getElementById("login-view") as HTMLElement | null;
+const signupView = document.getElementById("signup-view") as HTMLElement | null;
 const dashboardView = document.getElementById("dashboard-view") as HTMLElement | null;
 
 const loginForm = document.getElementById("login-form") as HTMLFormElement | null;
 const signupForm = document.getElementById("signup-form") as HTMLFormElement | null;
 const logoutButton = document.getElementById("logout-button") as HTMLButtonElement | null;
+const goToSignupButton = document.getElementById("go-to-signup") as HTMLButtonElement | null;
+const goToLoginButton = document.getElementById("go-to-login") as HTMLButtonElement | null;
 
 const eventForm = document.getElementById("event-form") as HTMLFormElement | null;
 const eventNameInput = document.getElementById("event-name") as HTMLInputElement | null;
@@ -28,15 +31,24 @@ const users: User[] = [];
 const events: EventItem[] = [];
 let currentUser: Pick<User, "name" | "email"> | null = null;
 
-function showHome(): void {
-  if (!homeView || !dashboardView) return;
-  homeView.hidden = false;
+function showLogin(): void {
+  if (!loginView || !signupView || !dashboardView) return;
+  loginView.hidden = false;
+  signupView.hidden = true;
+  dashboardView.hidden = true;
+}
+
+function showSignup(): void {
+  if (!loginView || !signupView || !dashboardView) return;
+  loginView.hidden = true;
+  signupView.hidden = false;
   dashboardView.hidden = true;
 }
 
 function showDashboard(): void {
-  if (!homeView || !dashboardView) return;
-  homeView.hidden = true;
+  if (!loginView || !signupView || !dashboardView) return;
+  loginView.hidden = true;
+  signupView.hidden = true;
   dashboardView.hidden = false;
 }
 
@@ -50,6 +62,14 @@ function renderEvents(): void {
     eventList.appendChild(li);
   });
 }
+
+goToSignupButton?.addEventListener("click", () => {
+  showSignup();
+});
+
+goToLoginButton?.addEventListener("click", () => {
+  showLogin();
+});
 
 signupForm?.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -70,9 +90,9 @@ signupForm?.addEventListener("submit", (event) => {
   }
 
   users.push({ name, email, password });
-  currentUser = { name, email };
   signupForm.reset();
-  showDashboard();
+  alert("Account created successfully. Please sign in.");
+  showLogin();
 });
 
 loginForm?.addEventListener("submit", (event) => {
@@ -102,7 +122,7 @@ eventForm?.addEventListener("submit", (event) => {
 
   if (!currentUser) {
     alert("Please sign in first.");
-    showHome();
+    showLogin();
     return;
   }
 
@@ -124,7 +144,7 @@ eventForm?.addEventListener("submit", (event) => {
 
 logoutButton?.addEventListener("click", () => {
   currentUser = null;
-  showHome();
+  showLogin();
 });
 
-showHome();
+showLogin();

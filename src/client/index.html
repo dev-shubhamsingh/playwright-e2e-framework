@@ -16,111 +16,117 @@
     </header>
 
     <main class="app">
-      <section id="home-view" class="card">
+      <section id="login-view" class="card auth-view">
         <h1>Your Next Great Night Starts on Bliss</h1>
         <p id="description">
           From headline concerts to underground raves, Bliss helps you discover events, manage your bookings, and run your own shows from one smart dashboard.
         </p>
+        <h2>Sign In</h2>
+        <form id="login-form">
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" placeholder="you@example.com" required />
 
-        <article id="login-section">
-          <h2>Sign In</h2>
-          <form id="login-form">
-            <label for="login-email">Email</label>
-            <input id="login-email" name="email" type="email" placeholder="you@example.com" required />
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" placeholder="Enter password" required />
 
-            <label for="login-password">Password</label>
-            <input id="login-password" name="password" type="password" placeholder="Enter password" required />
+          <button type="submit">Sign In</button>
+        </form>
+        <p class="switch-text">
+          New to Bliss?
+          <button id="go-to-signup" class="link-button" type="button">Create an account</button>
+        </p>
+      </section>
 
-            <button type="submit">Sign In</button>
-          </form>
-        </article>
+      <section id="signup-view" class="card auth-view" hidden>
+        <h1>Create Your Bliss Account</h1>
+        <p class="subtitle">Set up your profile to unlock your event dashboard.</p>
+        <form id="signup-form">
+          <label for="signup-name">Full Name</label>
+          <input id="signup-name" name="name" type="text" placeholder="Your full name" required />
 
-        <article id="signup-section">
-          <h2>Create Account</h2>
-          <form id="signup-form">
-            <label for="signup-name">Full Name</label>
-            <input id="signup-name" name="name" type="text" placeholder="Your full name" required />
+          <label for="signup-email">Email</label>
+          <input id="signup-email" name="email" type="email" placeholder="you@example.com" required />
 
-            <label for="signup-email">Email</label>
-            <input id="signup-email" name="email" type="email" placeholder="you@example.com" required />
+          <label for="signup-phone">Phone Number</label>
+          <input id="signup-phone" name="phone" type="tel" placeholder="+91 98765 43210" required />
 
-            <label for="signup-phone">Phone Number</label>
-            <input id="signup-phone" name="phone" type="tel" placeholder="+91 98765 43210" required />
+          <label for="signup-dob">Date of Birth</label>
+          <input id="signup-dob" name="dob" type="date" required />
 
-            <label for="signup-dob">Date of Birth</label>
-            <input id="signup-dob" name="dob" type="date" required />
+          <label for="signup-city">City</label>
+          <select id="signup-city" name="city" required>
+            <option value="">Select your city</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="delhi">Delhi</option>
+            <option value="bangalore">Bangalore</option>
+            <option value="goa">Goa</option>
+            <option value="other">Other</option>
+          </select>
 
-            <label for="signup-city">City</label>
-            <select id="signup-city" name="city" required>
-              <option value="">Select your city</option>
-              <option value="mumbai">Mumbai</option>
-              <option value="delhi">Delhi</option>
-              <option value="bangalore">Bangalore</option>
-              <option value="goa">Goa</option>
-              <option value="other">Other</option>
-            </select>
-
-            <fieldset>
-              <legend>Primary Interest</legend>
-              <label>
-                <input type="radio" name="interest" value="concerts" required />
-                Concerts
-              </label>
-              <label>
-                <input type="radio" name="interest" value="raves" />
-                Raves
-              </label>
-              <label>
-                <input type="radio" name="interest" value="festivals" />
-                Festivals
-              </label>
-            </fieldset>
-
-            <fieldset>
-              <legend>Notification Preferences</legend>
-              <label>
-                <input type="checkbox" name="notifications" value="email" />
-                Email updates
-              </label>
-              <label>
-                <input type="checkbox" name="notifications" value="sms" />
-                SMS alerts
-              </label>
-              <label>
-                <input type="checkbox" name="notifications" value="whatsapp" />
-                WhatsApp alerts
-              </label>
-            </fieldset>
-
-            <label for="signup-fav-genres">Favorite Genres</label>
-            <select id="signup-fav-genres" name="genres" multiple size="4">
-              <option value="edm">EDM</option>
-              <option value="techno">Techno</option>
-              <option value="house">House</option>
-              <option value="hiphop">Hip-Hop</option>
-              <option value="rock">Rock</option>
-            </select>
-
-            <label for="signup-bio">Tell us about your event taste</label>
-            <textarea
-              id="signup-bio"
-              name="bio"
-              rows="4"
-              maxlength="300"
-              placeholder="I love weekend techno raves and open-air music festivals."
-            ></textarea>
-
-            <label for="signup-password">Password</label>
-            <input id="signup-password" name="password" type="password" placeholder="Create password" required />
-
+          <fieldset>
+            <legend>Primary Interest</legend>
             <label>
-              <input id="signup-terms" name="terms" type="checkbox" required />
-              I agree to the Terms and Privacy Policy
+              <input type="radio" name="interest" value="concerts" required />
+              Concerts
             </label>
+            <label>
+              <input type="radio" name="interest" value="raves" />
+              Raves
+            </label>
+            <label>
+              <input type="radio" name="interest" value="festivals" />
+              Festivals
+            </label>
+          </fieldset>
 
-            <button type="submit">Create Account</button>
-          </form>
-        </article>
+          <fieldset>
+            <legend>Notification Preferences</legend>
+            <label>
+              <input type="checkbox" name="notifications" value="email" />
+              Email updates
+            </label>
+            <label>
+              <input type="checkbox" name="notifications" value="sms" />
+              SMS alerts
+            </label>
+            <label>
+              <input type="checkbox" name="notifications" value="whatsapp" />
+              WhatsApp alerts
+            </label>
+          </fieldset>
+
+          <label for="signup-fav-genres">Favorite Genres</label>
+          <select id="signup-fav-genres" name="genres" multiple size="4">
+            <option value="edm">EDM</option>
+            <option value="techno">Techno</option>
+            <option value="house">House</option>
+            <option value="hiphop">Hip-Hop</option>
+            <option value="rock">Rock</option>
+          </select>
+
+          <label for="signup-bio">Tell us about your event taste</label>
+          <textarea
+            id="signup-bio"
+            name="bio"
+            rows="4"
+            maxlength="300"
+            placeholder="I love weekend techno raves and open-air music festivals."
+          ></textarea>
+
+          <label for="signup-password">Password</label>
+          <input id="signup-password" name="password" type="password" placeholder="Create password" required />
+
+          <label>
+            <input id="signup-terms" name="terms" type="checkbox" required />
+            I agree to the Terms and Privacy Policy
+          </label>
+
+          <button type="submit">Create Account</button>
+        </form>
+        <p class="switch-text">
+          Already have an account?
+          <button id="go-to-login" class="link-button" type="button">Back to sign in</button>
+        </p>
       </section>
 
       <section id="dashboard-view" class="card" hidden>
