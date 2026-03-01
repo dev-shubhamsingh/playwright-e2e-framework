@@ -263,6 +263,12 @@ function handleRouteChange(): void {
   const route = window.location.hash.replace(/^#\//, "");
 
   if (route === "signup") {
+    if (currentUser) {
+      showDashboard();
+      renderEvents();
+      refreshSearchResultsFromCurrentFilters();
+      return;
+    }
     showSignup(false);
     return;
   }
@@ -273,6 +279,13 @@ function handleRouteChange(): void {
       return;
     }
     showDashboard(false);
+    renderEvents();
+    refreshSearchResultsFromCurrentFilters();
+    return;
+  }
+
+  if (route === "login" && currentUser) {
+    showDashboard();
     renderEvents();
     refreshSearchResultsFromCurrentFilters();
     return;
