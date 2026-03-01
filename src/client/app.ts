@@ -158,6 +158,10 @@ function isPastDate(dateString: string): boolean {
   return selectedDate < today;
 }
 
+function sortEventsByDate<T extends { date: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 const seededEvents: SeedEvent[] = seedEventTemplates.map((eventTemplate) => ({
   ...eventTemplate,
   date: dateFromNow(eventTemplate.daysFromNow)
@@ -198,7 +202,7 @@ function renderEvents(): void {
   if (!eventList) return;
   eventList.innerHTML = "";
 
-  events.forEach((eventItem, index) => {
+  sortEventsByDate(events).forEach((eventItem, index) => {
     const li = document.createElement("li");
     li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
     eventList.appendChild(li);
@@ -216,7 +220,7 @@ function renderSearchResults(results: SeedEvent[]): void {
     return;
   }
 
-  results.forEach((eventItem, index) => {
+  sortEventsByDate(results).forEach((eventItem, index) => {
     const li = document.createElement("li");
     li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
     searchResults.appendChild(li);
