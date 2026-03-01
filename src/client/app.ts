@@ -229,8 +229,9 @@ function showToast(message: string, type: ToastType = "info"): void {
 
   Object.assign(toast.style, {
     position: "fixed",
-    right: "16px",
-    top: "16px",
+    left: "50%",
+    top: "20px",
+    transform: "translateX(-50%)",
     zIndex: "9999",
     maxWidth: "360px",
     padding: "10px 12px",
