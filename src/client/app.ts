@@ -64,7 +64,8 @@ const events: EventItem[] = [];
 const STORAGE_KEYS = {
   users: "bliss_users",
   events: "bliss_events",
-  currentUser: "bliss_current_user"
+  currentUser: "bliss_current_user",
+  searchFilters: "bliss_search_filters"
 } as const;
 const seedEventTemplates: SeedEventTemplate[] = [
   {
@@ -98,6 +99,10 @@ const seedEventTemplates: SeedEventTemplate[] = [
 ];
 let currentUser: Pick<User, "name" | "email"> | null = null;
 type AppView = "login" | "signup" | "dashboard";
+type SearchFilters = {
+  city: string;
+  genre: string;
+};
 
 function loadUsersFromStorage(): User[] {
   const raw = localStorage.getItem(STORAGE_KEYS.users);
@@ -145,6 +150,20 @@ function loadCurrentUserFromStorage(): Pick<User, "name" | "email"> | null {
   }
 }
 
+function loadSearchFiltersFromStorage(): SearchFilters {
+  const raw = localStorage.getItem(STORAGE_KEYS.searchFilters);
+  if (!raw) return { city: "", genre: "" };
+  try {
+    const parsed = JSON.parse(raw) as Partial<SearchFilters>;
+    return {
+      city: typeof parsed.city === "string" ? parsed.city : "",
+      genre: typeof parsed.genre === "string" ? parsed.genre : ""
+    };
+  } catch {
+    return { city: "", genre: "" };
+  }
+}
+
 function persistUsers(): void {
   localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users));
 }
@@ -159,6 +178,10 @@ function persistCurrentUser(): void {
     return;
   }
   localStorage.setItem(STORAGE_KEYS.currentUser, JSON.stringify(currentUser));
+}
+
+function persistSearchFilters(filters: SearchFilters): void {
+  localStorage.setItem(STORAGE_KEYS.searchFilters, JSON.stringify(filters));
 }
 
 function dateFromNow(daysFromNow: number): string {
@@ -294,6 +317,13 @@ function refreshSearchResultsFromCurrentFilters(): void {
     (eventItem) => eventItem.city === city && eventItem.genre === genre
   );
   renderSearchResults(filteredEvents);
+}
+
+function hydrateSearchFilters(): void {
+  if (!searchCityInput || !searchGenreInput) return;
+  const filters = loadSearchFiltersFromStorage();
+  searchCityInput.value = filters.city;
+  searchGenreInput.value = filters.genre;
 }
 
 function handleRouteChange(): void {
@@ -437,6 +467,7 @@ searchForm?.addEventListener("submit", (event) => {
     alert("Please select both city and genre before searching.");
     return;
   }
+  persistSearchFilters({ city, genre });
 
   const filteredEvents = getSearchableEvents().filter(
     (eventItem) => eventItem.city === city && eventItem.genre === genre
@@ -521,6 +552,7 @@ logoutButton?.addEventListener("click", () => {
 users.push(...loadUsersFromStorage());
 events.push(...loadEventsFromStorage());
 currentUser = loadCurrentUserFromStorage();
+hydrateSearchFilters();
 
 if (currentUser) {
   showDashboard(false);
