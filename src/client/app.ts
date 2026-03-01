@@ -202,6 +202,26 @@ function renderSearchResults(results: SeedEvent[]): void {
   });
 }
 
+function getSearchableEvents(): SeedEvent[] {
+  return [...seededEvents, ...events];
+}
+
+function refreshSearchResultsFromCurrentFilters(): void {
+  if (!searchCityInput || !searchGenreInput) return;
+  const city = searchCityInput.value;
+  const genre = searchGenreInput.value;
+
+  if (!city || !genre) {
+    renderSearchResults(getSearchableEvents());
+    return;
+  }
+
+  const filteredEvents = getSearchableEvents().filter(
+    (eventItem) => eventItem.city === city && eventItem.genre === genre
+  );
+  renderSearchResults(filteredEvents);
+}
+
 goToSignupButton?.addEventListener("click", () => {
   showSignup();
 });
@@ -265,7 +285,7 @@ loginForm?.addEventListener("submit", (event) => {
   loginForm.reset();
   showDashboard();
   renderEvents();
-  renderSearchResults([...seededEvents, ...events]);
+  renderSearchResults(getSearchableEvents());
 });
 
 searchForm?.addEventListener("submit", (event) => {
@@ -280,8 +300,7 @@ searchForm?.addEventListener("submit", (event) => {
     return;
   }
 
-  const searchableEvents: SeedEvent[] = [...seededEvents, ...events];
-  const filteredEvents = searchableEvents.filter(
+  const filteredEvents = getSearchableEvents().filter(
     (eventItem) => eventItem.city === city && eventItem.genre === genre
   );
 
@@ -326,6 +345,7 @@ eventForm?.addEventListener("submit", (event) => {
   eventVenueInput.value = "";
 
   renderEvents();
+  refreshSearchResultsFromCurrentFilters();
 });
 
 logoutButton?.addEventListener("click", () => {
@@ -341,7 +361,7 @@ currentUser = loadCurrentUserFromStorage();
 if (currentUser) {
   showDashboard();
   renderEvents();
-  renderSearchResults([...seededEvents, ...events]);
+  renderSearchResults(getSearchableEvents());
 } else {
   showLogin();
 }
