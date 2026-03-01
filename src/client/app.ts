@@ -2,6 +2,13 @@ type User = {
   name: string;
   email: string;
   password: string;
+  phone: string;
+  dob: string;
+  city: string;
+  interest: string;
+  notifications: string[];
+  genres: string[];
+  bio: string;
 };
 
 type EventItem = {
@@ -290,11 +297,20 @@ signupForm?.addEventListener("submit", (event) => {
   const email = String(formData.get("email") || "")
     .trim()
     .toLowerCase();
+  const phone = String(formData.get("phone") || "").trim();
+  const dob = String(formData.get("dob") || "");
+  const city = String(formData.get("city") || "");
+  const interest = String(formData.get("interest") || "");
+  const notifications = formData
+    .getAll("notifications")
+    .map((value) => String(value));
+  const genres = formData.getAll("genres").map((value) => String(value));
+  const bio = String(formData.get("bio") || "").trim();
   const password = String(formData.get("password") || "");
   const acceptedTerms = formData.get("terms") === "on";
 
-  if (!name || !email || !password) {
-    alert("Please enter name, email, and password to create your account.");
+  if (!name || !email || !phone || !dob || !city || !interest || !password) {
+    alert("Please complete all required signup fields.");
     return;
   }
   if (password.length < 8) {
@@ -312,7 +328,18 @@ signupForm?.addEventListener("submit", (event) => {
     return;
   }
 
-  users.push({ name, email, password });
+  users.push({
+    name,
+    email,
+    password,
+    phone,
+    dob,
+    city,
+    interest,
+    notifications,
+    genres,
+    bio
+  });
   persistUsers();
   signupForm.reset();
   alert("Account created successfully. Please sign in.");
