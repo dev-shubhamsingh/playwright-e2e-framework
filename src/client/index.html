@@ -131,7 +131,9 @@
 
       <section id="dashboard-view" class="card" hidden>
         <h2>Event Dashboard</h2>
-        <p>Search upcoming events and publish your own.</p>
+        <p>Search upcoming events and review your published events.</p>
+
+        <button id="go-to-create-event" type="button">Publish New Event</button>
 
         <h3>Discover Events</h3>
         <form id="search-form">
@@ -159,6 +161,16 @@
 
         <h3>Search Results</h3>
         <ul id="search-results" aria-live="polite"></ul>
+
+        <h3>Published Events</h3>
+        <ul id="event-list" aria-live="polite"></ul>
+
+        <button id="logout-button" type="button">Log Out</button>
+      </section>
+
+      <section id="create-event-view" class="card" hidden>
+        <h2>Create Event</h2>
+        <p>Publish a new event to your dashboard and search results.</p>
 
         <form id="event-form">
           <label for="event-name">Event Name</label>
@@ -192,10 +204,7 @@
           <button type="submit">Publish Event</button>
         </form>
 
-        <h3>Published Events</h3>
-        <ul id="event-list" aria-live="polite"></ul>
-
-        <button id="logout-button" type="button">Log Out</button>
+        <button id="back-to-dashboard" type="button">Back to Dashboard</button>
       </section>
     </main>
 
