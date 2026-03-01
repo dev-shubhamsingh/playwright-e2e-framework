@@ -5,8 +5,8 @@
   "description": "Full-stack demo application with a production-ready Playwright E2E automation framework.",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "ts-node src/server.ts",
+    "start": "node dist/server/index.js",
+    "dev": "ts-node src/server/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
