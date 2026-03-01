@@ -131,7 +131,34 @@
 
       <section id="dashboard-view" class="card" hidden>
         <h2>Event Dashboard</h2>
-        <p>Publish events and track what you create.</p>
+        <p>Search upcoming events and publish your own.</p>
+
+        <h3>Discover Events</h3>
+        <form id="search-form">
+          <label for="search-city">City</label>
+          <select id="search-city" name="city" required>
+            <option value="">Select city</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="delhi">Delhi</option>
+            <option value="bangalore">Bangalore</option>
+            <option value="goa">Goa</option>
+          </select>
+
+          <label for="search-genre">Genre</label>
+          <select id="search-genre" name="genre" required>
+            <option value="">Select genre</option>
+            <option value="edm">EDM</option>
+            <option value="techno">Techno</option>
+            <option value="house">House</option>
+            <option value="hiphop">Hip-Hop</option>
+            <option value="rock">Rock</option>
+          </select>
+
+          <button type="submit">Find Events</button>
+        </form>
+
+        <h3>Search Results</h3>
+        <ul id="search-results" aria-live="polite"></ul>
 
         <form id="event-form">
           <label for="event-name">Event Name</label>
