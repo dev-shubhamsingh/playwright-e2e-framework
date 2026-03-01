@@ -2,12 +2,15 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 
+const HOST = process.env.HOST;
 const parsedPort = Number(process.env.PORT);
-const PORT =
-  Number.isInteger(parsedPort) && parsedPort >= 0 && parsedPort <= 65535
-    ? parsedPort
-    : 3000;
-const HOST = process.env.HOST || "127.0.0.1";
+if (!HOST) {
+  throw new Error("Missing HOST environment variable. Set it in .env.");
+}
+if (!Number.isInteger(parsedPort) || parsedPort < 0 || parsedPort > 65535) {
+  throw new Error("Invalid PORT environment variable. Set a value between 0 and 65535 in .env.");
+}
+const PORT = parsedPort;
 const CLIENT_DIR = path.resolve(process.cwd(), "dist", "client");
 
 const MIME_TYPES: Record<string, string> = {
