@@ -6,8 +6,9 @@
   --primary: #0f766e;
   --primary-hover: #115e59;
   --border: #dbe3ef;
-  --hero-a: #e6fffb;
-  --hero-b: #eef2ff;
+  --accent-bg: #ecfeff;
+  --danger: #b91c1c;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text);
@@ -23,14 +24,12 @@ body {
 }
 
 .topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
   position: sticky;
   top: 0;
+  z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
 }
 
 .brand {
@@ -38,89 +37,131 @@ body {
   font-weight: 700;
 }
 
-nav {
-  display: flex;
-  gap: 14px;
-}
-
-nav a {
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-nav a:hover {
-  color: var(--primary);
-}
-
 .app {
-  max-width: 920px;
+  max-width: 980px;
   margin: 28px auto;
   padding: 0 16px 40px;
-  display: grid;
-  gap: 16px;
-}
-
-.hero {
-  background: linear-gradient(120deg, var(--hero-a), var(--hero-b));
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-}
-
-.hero h1 {
-  margin: 0 0 10px;
-}
-
-.hero p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.5;
 }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
 }
 
-.card h2,
-.card h3 {
+#home-view {
+  display: grid;
+  gap: 18px;
+}
+
+#home-view h1 {
+  margin: 0 0 8px;
+}
+
+#description {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+#login-section,
+#signup-section {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: linear-gradient(160deg, #ffffff 0%, #f9fcff 100%);
+}
+
+#dashboard-view {
+  background: linear-gradient(160deg, #ffffff 0%, var(--accent-bg) 100%);
+}
+
+#dashboard-view h2 {
   margin-top: 0;
 }
 
 form {
   display: grid;
   gap: 10px;
+  margin-top: 10px;
 }
 
 label {
   font-weight: 600;
+  font-size: 0.94rem;
 }
 
 input,
+select,
+textarea,
 button {
   font: inherit;
-  padding: 10px 12px;
   border-radius: 10px;
+  padding: 10px 12px;
 }
 
-input {
+input,
+select,
+textarea {
   border: 1px solid #cfd8e3;
   background: #fff;
+  color: var(--text);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+select[multiple] {
+  min-height: 110px;
+}
+
+fieldset {
+  border: 1px solid #d6dfeb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 4px 0;
+  display: grid;
+  gap: 8px;
+}
+
+legend {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0 6px;
+}
+
+fieldset label,
+#signup-form > label:has(input[type="checkbox"]) {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 button {
   border: none;
   background: var(--primary);
   color: #fff;
-  cursor: pointer;
   font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease-in-out;
 }
 
 button:hover {
   background: var(--primary-hover);
+}
+
+#logout-button {
+  margin-top: 14px;
+  background: var(--danger);
+}
+
+#logout-button:hover {
+  background: #991b1b;
 }
 
 ul {
@@ -138,19 +179,13 @@ li {
   background: #f9fbff;
 }
 
-@media (max-width: 640px) {
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  nav {
-    flex-wrap: wrap;
-  }
-
-  .hero,
+@media (max-width: 760px) {
   .card {
     padding: 14px;
+  }
+
+  #login-section,
+  #signup-section {
+    padding: 12px;
   }
 }
