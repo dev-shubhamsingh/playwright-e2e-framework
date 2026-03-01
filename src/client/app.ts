@@ -6,6 +6,8 @@ type User = {
 
 type EventItem = {
   name: string;
+  city: string;
+  genre: string;
   date: string;
   venue: string;
   owner: string;
@@ -39,6 +41,8 @@ const goToLoginButton = document.getElementById("go-to-login") as HTMLButtonElem
 
 const eventForm = document.getElementById("event-form") as HTMLFormElement | null;
 const eventNameInput = document.getElementById("event-name") as HTMLInputElement | null;
+const eventCityInput = document.getElementById("event-city") as HTMLSelectElement | null;
+const eventGenreInput = document.getElementById("event-genre") as HTMLSelectElement | null;
 const eventDateInput = document.getElementById("event-date") as HTMLInputElement | null;
 const eventVenueInput = document.getElementById("event-venue") as HTMLInputElement | null;
 const eventList = document.getElementById("event-list") as HTMLUListElement | null;
@@ -120,7 +124,7 @@ function renderEvents(): void {
 
   events.forEach((eventItem, index) => {
     const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.date} | ${eventItem.venue}`;
+    li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
     eventList.appendChild(li);
   });
 }
@@ -195,7 +199,7 @@ loginForm?.addEventListener("submit", (event) => {
   currentUser = { name: matchedUser.name, email: matchedUser.email };
   loginForm.reset();
   showDashboard();
-  renderSearchResults(seededEvents);
+  renderSearchResults([...seededEvents, ...events]);
 });
 
 searchForm?.addEventListener("submit", (event) => {
@@ -207,7 +211,8 @@ searchForm?.addEventListener("submit", (event) => {
 
   if (!city || !genre) return;
 
-  const filteredEvents = seededEvents.filter(
+  const searchableEvents: SeedEvent[] = [...seededEvents, ...events];
+  const filteredEvents = searchableEvents.filter(
     (eventItem) => eventItem.city === city && eventItem.genre === genre
   );
 
@@ -223,16 +228,27 @@ eventForm?.addEventListener("submit", (event) => {
     return;
   }
 
-  if (!eventNameInput || !eventDateInput || !eventVenueInput) return;
+  if (
+    !eventNameInput ||
+    !eventCityInput ||
+    !eventGenreInput ||
+    !eventDateInput ||
+    !eventVenueInput
+  )
+    return;
   const name = eventNameInput.value.trim();
+  const city = eventCityInput.value;
+  const genre = eventGenreInput.value;
   const date = eventDateInput.value;
   const venue = eventVenueInput.value.trim();
 
-  if (!name || !date || !venue) return;
+  if (!name || !city || !genre || !date || !venue) return;
 
-  events.push({ name, date, venue, owner: currentUser.email });
+  events.push({ name, city, genre, date, venue, owner: currentUser.email });
 
   eventNameInput.value = "";
+  eventCityInput.value = "";
+  eventGenreInput.value = "";
   eventDateInput.value = "";
   eventVenueInput.value = "";
 
