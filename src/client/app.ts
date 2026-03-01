@@ -518,7 +518,7 @@ signupForm?.addEventListener("submit", (event) => {
   });
   persistUsers();
   signupForm.reset();
-  showToast("Account created successfully. Please sign in.", "success");
+  showToast("Account created. You can now sign in to Bliss.", "success");
   showLogin();
 });
 
@@ -547,6 +547,7 @@ loginForm?.addEventListener("submit", (event) => {
   currentUser = { name: matchedUser.name, email: matchedUser.email };
   persistCurrentUser();
   loginForm.reset();
+  showToast(`Welcome back, ${matchedUser.name}. You are now signed in.`, "success");
   showDashboard();
   renderEvents();
   renderSearchResults(getSearchableEvents());
@@ -635,7 +636,7 @@ eventForm?.addEventListener("submit", (event) => {
   eventDateInput.value = "";
   eventVenueInput.value = "";
 
-  showToast("Event published successfully.", "success");
+  showToast(`Event published: ${name}.`, "success");
   showDashboard();
   renderEvents();
   refreshSearchResultsFromCurrentFilters();
