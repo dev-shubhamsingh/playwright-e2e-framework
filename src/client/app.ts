@@ -220,7 +220,10 @@ signupForm?.addEventListener("submit", (event) => {
     .toLowerCase();
   const password = String(formData.get("password") || "");
 
-  if (!name || !email || !password) return;
+  if (!name || !email || !password) {
+    alert("Please enter name, email, and password to create your account.");
+    return;
+  }
 
   const existingUser = users.find((user) => user.email === email);
   if (existingUser) {
@@ -243,6 +246,11 @@ loginForm?.addEventListener("submit", (event) => {
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") || "");
+
+  if (!email || !password) {
+    alert("Please enter both email and password to sign in.");
+    return;
+  }
 
   const matchedUser = users.find(
     (user) => user.email === email && user.password === password
@@ -267,7 +275,10 @@ searchForm?.addEventListener("submit", (event) => {
   const city = searchCityInput.value;
   const genre = searchGenreInput.value;
 
-  if (!city || !genre) return;
+  if (!city || !genre) {
+    alert("Please select both city and genre before searching.");
+    return;
+  }
 
   const searchableEvents: SeedEvent[] = [...seededEvents, ...events];
   const filteredEvents = searchableEvents.filter(
@@ -300,7 +311,10 @@ eventForm?.addEventListener("submit", (event) => {
   const date = eventDateInput.value;
   const venue = eventVenueInput.value.trim();
 
-  if (!name || !city || !genre || !date || !venue) return;
+  if (!name || !city || !genre || !date || !venue) {
+    alert("Please complete all event details before publishing.");
+    return;
+  }
 
   events.push({ name, city, genre, date, venue, owner: currentUser.email });
   persistEvents();
