@@ -12,6 +12,7 @@ type User = {
 };
 
 type EventItem = {
+  id: string;
   name: string;
   city: string;
   genre: string;
@@ -113,8 +114,20 @@ function loadEventsFromStorage(): EventItem[] {
   const raw = localStorage.getItem(STORAGE_KEYS.events);
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw) as EventItem[];
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = JSON.parse(raw) as Partial<EventItem>[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((eventItem, index) => ({
+      id:
+        typeof eventItem.id === "string" && eventItem.id
+          ? eventItem.id
+          : `legacy-${index}-${eventItem.name ?? "event"}`,
+      name: String(eventItem.name ?? ""),
+      city: String(eventItem.city ?? ""),
+      genre: String(eventItem.genre ?? ""),
+      date: String(eventItem.date ?? ""),
+      venue: String(eventItem.venue ?? ""),
+      owner: String(eventItem.owner ?? "")
+    }));
   } catch {
     return [];
   }
@@ -169,6 +182,13 @@ function sortEventsByDate<T extends { date: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+function createEventId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `event-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function getCurrentUserEvents(): EventItem[] {
   if (!currentUser) return [];
   return events.filter((eventItem) => eventItem.owner === currentUser?.email);
@@ -216,7 +236,24 @@ function renderEvents(): void {
 
   sortEventsByDate(getCurrentUserEvents()).forEach((eventItem, index) => {
     const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
+    const text = document.createElement("span");
+    text.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => {
+      const targetIndex = events.findIndex((item) => item.id === eventItem.id);
+      if (targetIndex < 0) return;
+
+      events.splice(targetIndex, 1);
+      persistEvents();
+      renderEvents();
+      refreshSearchResultsFromCurrentFilters();
+    });
+
+    li.appendChild(text);
+    li.appendChild(deleteButton);
     eventList.appendChild(li);
   });
 }
@@ -454,7 +491,15 @@ eventForm?.addEventListener("submit", (event) => {
     return;
   }
 
-  events.push({ name, city, genre, date, venue, owner: ownerEmail });
+  events.push({
+    id: createEventId(),
+    name,
+    city,
+    genre,
+    date,
+    venue,
+    owner: ownerEmail
+  });
   persistEvents();
 
   eventNameInput.value = "";
