@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bliss | Discover Live Events</title>
+    <meta
+      name="description"
+      content="Bliss helps fans discover concerts, artist shows, raves, and festival experiences."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">Bliss</div>
+      <nav aria-label="Primary navigation">
+        <a href="#discover">Discover</a>
+        <a href="#host">Host an Event</a>
+        <a href="#dashboard">Dashboard</a>
+      </nav>
+    </header>
+
+    <main class="app">
+      <section class="hero" id="discover">
+        <h1>Find the Next Night You’ll Never Forget</h1>
+        <p id="description">
+          Explore concerts, artist showcases, underground events, and massive festival weekends in one place.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Search Events</h2>
+        <form id="search-form">
+          <label for="city-input">City</label>
+          <input id="city-input" name="city" type="text" placeholder="e.g. Amsterdam" required />
+
+          <label for="genre-input">Genre / Vibe</label>
+          <input id="genre-input" name="genre" type="text" placeholder="e.g. EDM, Techno, Live Band" required />
+
+          <button type="submit">Search Events</button>
+        </form>
+      </section>
+
+      <section class="card" id="host">
+        <h2>Host an Event</h2>
+        <form id="event-form">
+          <label for="event-name">Event Name</label>
+          <input id="event-name" name="eventName" type="text" placeholder="Neon Sky Rave" required />
+
+          <label for="event-date">Date</label>
+          <input id="event-date" name="eventDate" type="date" required />
+
+          <label for="event-venue">Venue</label>
+          <input id="event-venue" name="eventVenue" type="text" placeholder="The Dockyard Arena" required />
+
+          <button type="submit">Publish Event</button>
+        </form>
+      </section>
+
+      <section class="card" id="dashboard">
+        <h2>Event Dashboard</h2>
+        <p>Recently published events:</p>
+        <ul id="event-list" aria-live="polite"></ul>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
