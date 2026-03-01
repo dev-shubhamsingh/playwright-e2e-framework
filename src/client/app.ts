@@ -162,6 +162,11 @@ function sortEventsByDate<T extends { date: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+function getCurrentUserEvents(): EventItem[] {
+  if (!currentUser) return [];
+  return events.filter((eventItem) => eventItem.owner === currentUser?.email);
+}
+
 const seededEvents: SeedEvent[] = seedEventTemplates.map((eventTemplate) => ({
   ...eventTemplate,
   date: dateFromNow(eventTemplate.daysFromNow)
@@ -202,7 +207,7 @@ function renderEvents(): void {
   if (!eventList) return;
   eventList.innerHTML = "";
 
-  sortEventsByDate(events).forEach((eventItem, index) => {
+  sortEventsByDate(getCurrentUserEvents()).forEach((eventItem, index) => {
     const li = document.createElement("li");
     li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
     eventList.appendChild(li);
