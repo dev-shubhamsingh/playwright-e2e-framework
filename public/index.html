@@ -3,64 +3,147 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bliss | Discover Live Events</title>
+    <title>Bliss | Event Discovery and Management Platform</title>
     <meta
       name="description"
-      content="Bliss helps fans discover concerts, artist shows, raves, and festival experiences."
+      content="Bliss helps users discover events, create accounts, sign in, and manage event activity from a dashboard."
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div class="brand">Bliss</div>
-      <nav aria-label="Primary navigation">
-        <a href="#discover">Discover</a>
-        <a href="#host">Host an Event</a>
-        <a href="#dashboard">Dashboard</a>
-      </nav>
     </header>
 
     <main class="app">
-      <section class="hero" id="discover">
-        <h1>Find the Next Night You’ll Never Forget</h1>
+      <section id="home-view" class="card">
+        <h1>Your Next Great Night Starts on Bliss</h1>
         <p id="description">
-          Explore concerts, artist showcases, underground events, and massive festival weekends in one place.
+          From headline concerts to underground raves, Bliss helps you discover events, manage your bookings, and run your own shows from one smart dashboard.
         </p>
+
+        <article id="login-section">
+          <h2>Sign In</h2>
+          <form id="login-form">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" placeholder="you@example.com" required />
+
+            <label for="login-password">Password</label>
+            <input id="login-password" name="password" type="password" placeholder="Enter password" required />
+
+            <button type="submit">Sign In</button>
+          </form>
+        </article>
+
+        <article id="signup-section">
+          <h2>Create Account</h2>
+          <form id="signup-form">
+            <label for="signup-name">Full Name</label>
+            <input id="signup-name" name="name" type="text" placeholder="Your full name" required />
+
+            <label for="signup-email">Email</label>
+            <input id="signup-email" name="email" type="email" placeholder="you@example.com" required />
+
+            <label for="signup-phone">Phone Number</label>
+            <input id="signup-phone" name="phone" type="tel" placeholder="+91 98765 43210" required />
+
+            <label for="signup-dob">Date of Birth</label>
+            <input id="signup-dob" name="dob" type="date" required />
+
+            <label for="signup-city">City</label>
+            <select id="signup-city" name="city" required>
+              <option value="">Select your city</option>
+              <option value="mumbai">Mumbai</option>
+              <option value="delhi">Delhi</option>
+              <option value="bangalore">Bangalore</option>
+              <option value="goa">Goa</option>
+              <option value="other">Other</option>
+            </select>
+
+            <fieldset>
+              <legend>Primary Interest</legend>
+              <label>
+                <input type="radio" name="interest" value="concerts" required />
+                Concerts
+              </label>
+              <label>
+                <input type="radio" name="interest" value="raves" />
+                Raves
+              </label>
+              <label>
+                <input type="radio" name="interest" value="festivals" />
+                Festivals
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Notification Preferences</legend>
+              <label>
+                <input type="checkbox" name="notifications" value="email" />
+                Email updates
+              </label>
+              <label>
+                <input type="checkbox" name="notifications" value="sms" />
+                SMS alerts
+              </label>
+              <label>
+                <input type="checkbox" name="notifications" value="whatsapp" />
+                WhatsApp alerts
+              </label>
+            </fieldset>
+
+            <label for="signup-fav-genres">Favorite Genres</label>
+            <select id="signup-fav-genres" name="genres" multiple size="4">
+              <option value="edm">EDM</option>
+              <option value="techno">Techno</option>
+              <option value="house">House</option>
+              <option value="hiphop">Hip-Hop</option>
+              <option value="rock">Rock</option>
+            </select>
+
+            <label for="signup-bio">Tell us about your event taste</label>
+            <textarea
+              id="signup-bio"
+              name="bio"
+              rows="4"
+              maxlength="300"
+              placeholder="I love weekend techno raves and open-air music festivals."
+            ></textarea>
+
+            <label for="signup-password">Password</label>
+            <input id="signup-password" name="password" type="password" placeholder="Create password" required />
+
+            <label>
+              <input id="signup-terms" name="terms" type="checkbox" required />
+              I agree to the Terms and Privacy Policy
+            </label>
+
+            <button type="submit">Create Account</button>
+          </form>
+        </article>
       </section>
 
-      <section class="card">
-        <h2>Search Events</h2>
-        <form id="search-form">
-          <label for="city-input">City</label>
-          <input id="city-input" name="city" type="text" placeholder="e.g. Amsterdam" required />
+      <section id="dashboard-view" class="card" hidden>
+        <h2>Event Dashboard</h2>
+        <p>Publish events and track what you create.</p>
 
-          <label for="genre-input">Genre / Vibe</label>
-          <input id="genre-input" name="genre" type="text" placeholder="e.g. EDM, Techno, Live Band" required />
-
-          <button type="submit">Search Events</button>
-        </form>
-      </section>
-
-      <section class="card" id="host">
-        <h2>Host an Event</h2>
         <form id="event-form">
           <label for="event-name">Event Name</label>
-          <input id="event-name" name="eventName" type="text" placeholder="Neon Sky Rave" required />
+          <input id="event-name" name="eventName" type="text" placeholder="Neon Pulse Night" required />
 
           <label for="event-date">Date</label>
           <input id="event-date" name="eventDate" type="date" required />
 
           <label for="event-venue">Venue</label>
-          <input id="event-venue" name="eventVenue" type="text" placeholder="The Dockyard Arena" required />
+          <input id="event-venue" name="eventVenue" type="text" placeholder="Dockyard Arena" required />
 
           <button type="submit">Publish Event</button>
         </form>
-      </section>
 
-      <section class="card" id="dashboard">
-        <h2>Event Dashboard</h2>
-        <p>Recently published events:</p>
+        <h3>Published Events</h3>
         <ul id="event-list" aria-live="polite"></ul>
+
+        <button id="logout-button" type="button">Log Out</button>
       </section>
     </main>
 
