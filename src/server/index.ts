@@ -8,7 +8,7 @@ const PORT =
     ? parsedPort
     : 3000;
 const HOST = process.env.HOST || "127.0.0.1";
-const PUBLIC_DIR = path.resolve(__dirname, "..", "public");
+const CLIENT_DIR = path.resolve(process.cwd(), "dist", "client");
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -21,9 +21,9 @@ const MIME_TYPES: Record<string, string> = {
 const server = http.createServer((req, res) => {
   const urlPath = req.url ?? "/";
   const requestedPath = urlPath === "/" ? "/index.html" : urlPath;
-  const filePath = path.join(PUBLIC_DIR, requestedPath);
+  const filePath = path.join(CLIENT_DIR, requestedPath);
 
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  if (!filePath.startsWith(CLIENT_DIR)) {
     res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Forbidden");
     return;

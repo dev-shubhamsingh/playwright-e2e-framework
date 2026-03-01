@@ -4,10 +4,17 @@
   "private": true,
   "description": "Full-stack demo application with a production-ready Playwright E2E automation framework.",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "tsc -p tsconfig.json",
+    "build:client": "tsc -p tsconfig.client.json && npm run build:client:assets",
+    "build:client:assets": "cp src/client/index.html dist/client/index.html && cp src/client/styles.css dist/client/styles.css",
     "start": "node dist/server/index.js",
-    "dev": "ts-node src/server/index.ts",
-    "typecheck": "tsc --noEmit"
+    "dev": "npm run build:client && sh -c 'npm run dev:client:watch & npm run dev:server'",
+    "dev:server": "ts-node src/server/index.ts",
+    "dev:client:watch": "tsc -p tsconfig.client.json --watch --preserveWatchOutput",
+    "typecheck": "npm run typecheck:server && npm run typecheck:client",
+    "typecheck:server": "tsc -p tsconfig.json --noEmit",
+    "typecheck:client": "tsc -p tsconfig.client.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^24.11.0",
