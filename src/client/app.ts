@@ -11,6 +11,22 @@ type EventItem = {
   owner: string;
 };
 
+type SeedEvent = {
+  name: string;
+  city: string;
+  genre: string;
+  date: string;
+  venue: string;
+};
+
+type SeedEventTemplate = {
+  name: string;
+  city: string;
+  genre: string;
+  venue: string;
+  daysFromNow: number;
+};
+
 const loginView = document.getElementById("login-view") as HTMLElement | null;
 const signupView = document.getElementById("signup-view") as HTMLElement | null;
 const dashboardView = document.getElementById("dashboard-view") as HTMLElement | null;
@@ -26,10 +42,56 @@ const eventNameInput = document.getElementById("event-name") as HTMLInputElement
 const eventDateInput = document.getElementById("event-date") as HTMLInputElement | null;
 const eventVenueInput = document.getElementById("event-venue") as HTMLInputElement | null;
 const eventList = document.getElementById("event-list") as HTMLUListElement | null;
+const searchForm = document.getElementById("search-form") as HTMLFormElement | null;
+const searchCityInput = document.getElementById("search-city") as HTMLSelectElement | null;
+const searchGenreInput = document.getElementById("search-genre") as HTMLSelectElement | null;
+const searchResults = document.getElementById("search-results") as HTMLUListElement | null;
 
 const users: User[] = [];
 const events: EventItem[] = [];
+const seedEventTemplates: SeedEventTemplate[] = [
+  {
+    name: "Neon Pulse Festival",
+    city: "goa",
+    genre: "edm",
+    venue: "Sunset Beach Arena",
+    daysFromNow: 21
+  },
+  {
+    name: "Warehouse Frequency",
+    city: "mumbai",
+    genre: "techno",
+    venue: "Dockyard Warehouse",
+    daysFromNow: 12
+  },
+  {
+    name: "Skyline House Sessions",
+    city: "bangalore",
+    genre: "house",
+    venue: "Skyline Terrace",
+    daysFromNow: 36
+  },
+  {
+    name: "Old School Block Party",
+    city: "delhi",
+    genre: "hiphop",
+    venue: "Central Grounds",
+    daysFromNow: 18
+  }
+];
 let currentUser: Pick<User, "name" | "email"> | null = null;
+
+function dateFromNow(daysFromNow: number): string {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + daysFromNow);
+  return date.toISOString().slice(0, 10);
+}
+
+const seededEvents: SeedEvent[] = seedEventTemplates.map((eventTemplate) => ({
+  ...eventTemplate,
+  date: dateFromNow(eventTemplate.daysFromNow)
+}));
 
 function showLogin(): void {
   if (!loginView || !signupView || !dashboardView) return;
@@ -60,6 +122,24 @@ function renderEvents(): void {
     const li = document.createElement("li");
     li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.date} | ${eventItem.venue}`;
     eventList.appendChild(li);
+  });
+}
+
+function renderSearchResults(results: SeedEvent[]): void {
+  if (!searchResults) return;
+  searchResults.innerHTML = "";
+
+  if (results.length === 0) {
+    const emptyItem = document.createElement("li");
+    emptyItem.textContent = "No events found for this city and genre.";
+    searchResults.appendChild(emptyItem);
+    return;
+  }
+
+  results.forEach((eventItem, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
+    searchResults.appendChild(li);
   });
 }
 
@@ -115,6 +195,23 @@ loginForm?.addEventListener("submit", (event) => {
   currentUser = { name: matchedUser.name, email: matchedUser.email };
   loginForm.reset();
   showDashboard();
+  renderSearchResults(seededEvents);
+});
+
+searchForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  if (!searchCityInput || !searchGenreInput) return;
+  const city = searchCityInput.value;
+  const genre = searchGenreInput.value;
+
+  if (!city || !genre) return;
+
+  const filteredEvents = seededEvents.filter(
+    (eventItem) => eventItem.city === city && eventItem.genre === genre
+  );
+
+  renderSearchResults(filteredEvents);
 });
 
 eventForm?.addEventListener("submit", (event) => {
