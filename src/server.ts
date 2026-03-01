@@ -2,8 +2,12 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 
-const PORT = Number(process.env.PORT);
-const HOST = process.env.HOST;
+const parsedPort = Number(process.env.PORT);
+const PORT =
+  Number.isInteger(parsedPort) && parsedPort >= 0 && parsedPort <= 65535
+    ? parsedPort
+    : 3000;
+const HOST = process.env.HOST || "127.0.0.1";
 const PUBLIC_DIR = path.resolve(__dirname, "..", "public");
 
 const MIME_TYPES: Record<string, string> = {
