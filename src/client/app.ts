@@ -108,8 +108,28 @@ function loadUsersFromStorage(): User[] {
   const raw = localStorage.getItem(STORAGE_KEYS.users);
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw) as User[];
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = JSON.parse(raw) as Partial<User>[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((user) => ({
+        name: String(user.name ?? "").trim(),
+        email: String(user.email ?? "")
+          .trim()
+          .toLowerCase(),
+        password: String(user.password ?? ""),
+        phone: String(user.phone ?? "").trim(),
+        dob: String(user.dob ?? ""),
+        city: String(user.city ?? ""),
+        interest: String(user.interest ?? ""),
+        notifications: Array.isArray(user.notifications)
+          ? user.notifications.map((value) => String(value))
+          : [],
+        genres: Array.isArray(user.genres)
+          ? user.genres.map((value) => String(value))
+          : [],
+        bio: String(user.bio ?? "").trim()
+      }))
+      .filter((user) => Boolean(user.name && user.email && user.password));
   } catch {
     return [];
   }
