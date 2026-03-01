@@ -106,6 +106,7 @@ type SearchFilters = {
   city: string;
   genre: string;
 };
+type ToastType = "success" | "error" | "info";
 
 function loadUsersFromStorage(): User[] {
   const raw = localStorage.getItem(STORAGE_KEYS.users);
@@ -205,6 +206,47 @@ function persistCurrentUser(): void {
 
 function persistSearchFilters(filters: SearchFilters): void {
   localStorage.setItem(STORAGE_KEYS.searchFilters, JSON.stringify(filters));
+}
+
+function showToast(message: string, type: ToastType = "info"): void {
+  const existingToast = document.getElementById("app-toast");
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  const toast = document.createElement("div");
+  toast.id = "app-toast";
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  toast.textContent = message;
+
+  const palette: Record<ToastType, { bg: string; border: string; text: string }> = {
+    success: { bg: "#ecfdf5", border: "#10b981", text: "#065f46" },
+    error: { bg: "#fef2f2", border: "#ef4444", text: "#991b1b" },
+    info: { bg: "#eff6ff", border: "#3b82f6", text: "#1e3a8a" }
+  };
+  const style = palette[type];
+
+  Object.assign(toast.style, {
+    position: "fixed",
+    right: "16px",
+    top: "16px",
+    zIndex: "9999",
+    maxWidth: "360px",
+    padding: "10px 12px",
+    borderRadius: "10px",
+    border: `1px solid ${style.border}`,
+    background: style.bg,
+    color: style.text,
+    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.15)",
+    fontFamily: "inherit",
+    fontSize: "0.95rem"
+  } as CSSStyleDeclaration);
+
+  document.body.appendChild(toast);
+  window.setTimeout(() => {
+    toast.remove();
+  }, 3200);
 }
 
 function dateFromNow(daysFromNow: number): string {
@@ -476,7 +518,7 @@ signupForm?.addEventListener("submit", (event) => {
   });
   persistUsers();
   signupForm.reset();
-  alert("Account created successfully. Please sign in.");
+  showToast("Account created successfully. Please sign in.", "success");
   showLogin();
 });
 
@@ -593,6 +635,7 @@ eventForm?.addEventListener("submit", (event) => {
   eventDateInput.value = "";
   eventVenueInput.value = "";
 
+  showToast("Event published successfully.", "success");
   showDashboard();
   renderEvents();
   refreshSearchResultsFromCurrentFilters();
