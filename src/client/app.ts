@@ -385,6 +385,7 @@ eventForm?.addEventListener("submit", (event) => {
   const genre = eventGenreInput.value;
   const date = eventDateInput.value;
   const venue = eventVenueInput.value.trim();
+  const ownerEmail = currentUser.email;
 
   if (!name || !city || !genre || !date || !venue) {
     alert("Please complete all event details before publishing.");
@@ -395,7 +396,20 @@ eventForm?.addEventListener("submit", (event) => {
     return;
   }
 
-  events.push({ name, city, genre, date, venue, owner: currentUser.email });
+  const isDuplicateEvent = events.some(
+    (eventItem) =>
+      eventItem.owner === ownerEmail &&
+      eventItem.name.toLowerCase() === name.toLowerCase() &&
+      eventItem.city === city &&
+      eventItem.date === date &&
+      eventItem.venue.toLowerCase() === venue.toLowerCase()
+  );
+  if (isDuplicateEvent) {
+    alert("You already published this event.");
+    return;
+  }
+
+  events.push({ name, city, genre, date, venue, owner: ownerEmail });
   persistEvents();
 
   eventNameInput.value = "";
