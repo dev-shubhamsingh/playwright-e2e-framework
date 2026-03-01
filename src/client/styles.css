@@ -107,6 +107,23 @@ body {
   margin-top: 0;
 }
 
+#go-to-create-event {
+  margin-bottom: 14px;
+}
+
+#create-event-view h2 {
+  margin-top: 0;
+}
+
+#back-to-dashboard {
+  margin-top: 14px;
+  background: #334155;
+}
+
+#back-to-dashboard:hover {
+  background: #1f2937;
+}
+
 form {
   display: grid;
   gap: 10px;
