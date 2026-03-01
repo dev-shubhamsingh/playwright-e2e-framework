@@ -53,6 +53,11 @@ const searchResults = document.getElementById("search-results") as HTMLUListElem
 
 const users: User[] = [];
 const events: EventItem[] = [];
+const STORAGE_KEYS = {
+  users: "bliss_users",
+  events: "bliss_events",
+  currentUser: "bliss_current_user"
+} as const;
 const seedEventTemplates: SeedEventTemplate[] = [
   {
     name: "Neon Pulse Festival",
@@ -84,6 +89,56 @@ const seedEventTemplates: SeedEventTemplate[] = [
   }
 ];
 let currentUser: Pick<User, "name" | "email"> | null = null;
+
+function loadUsersFromStorage(): User[] {
+  const raw = localStorage.getItem(STORAGE_KEYS.users);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as User[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadEventsFromStorage(): EventItem[] {
+  const raw = localStorage.getItem(STORAGE_KEYS.events);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as EventItem[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadCurrentUserFromStorage(): Pick<User, "name" | "email"> | null {
+  const raw = localStorage.getItem(STORAGE_KEYS.currentUser);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Pick<User, "name" | "email">;
+    if (parsed?.email && parsed?.name) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function persistUsers(): void {
+  localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users));
+}
+
+function persistEvents(): void {
+  localStorage.setItem(STORAGE_KEYS.events, JSON.stringify(events));
+}
+
+function persistCurrentUser(): void {
+  if (!currentUser) {
+    localStorage.removeItem(STORAGE_KEYS.currentUser);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEYS.currentUser, JSON.stringify(currentUser));
+}
 
 function dateFromNow(daysFromNow: number): string {
   const date = new Date();
@@ -174,6 +229,7 @@ signupForm?.addEventListener("submit", (event) => {
   }
 
   users.push({ name, email, password });
+  persistUsers();
   signupForm.reset();
   alert("Account created successfully. Please sign in.");
   showLogin();
@@ -197,8 +253,10 @@ loginForm?.addEventListener("submit", (event) => {
   }
 
   currentUser = { name: matchedUser.name, email: matchedUser.email };
+  persistCurrentUser();
   loginForm.reset();
   showDashboard();
+  renderEvents();
   renderSearchResults([...seededEvents, ...events]);
 });
 
@@ -245,6 +303,7 @@ eventForm?.addEventListener("submit", (event) => {
   if (!name || !city || !genre || !date || !venue) return;
 
   events.push({ name, city, genre, date, venue, owner: currentUser.email });
+  persistEvents();
 
   eventNameInput.value = "";
   eventCityInput.value = "";
@@ -257,7 +316,18 @@ eventForm?.addEventListener("submit", (event) => {
 
 logoutButton?.addEventListener("click", () => {
   currentUser = null;
+  persistCurrentUser();
   showLogin();
 });
 
-showLogin();
+users.push(...loadUsersFromStorage());
+events.push(...loadEventsFromStorage());
+currentUser = loadCurrentUserFromStorage();
+
+if (currentUser) {
+  showDashboard();
+  renderEvents();
+  renderSearchResults([...seededEvents, ...events]);
+} else {
+  showLogin();
+}
