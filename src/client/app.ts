@@ -40,12 +40,15 @@ type SeedEventTemplate = {
 const loginView = document.getElementById("login-view") as HTMLElement | null;
 const signupView = document.getElementById("signup-view") as HTMLElement | null;
 const dashboardView = document.getElementById("dashboard-view") as HTMLElement | null;
+const createEventView = document.getElementById("create-event-view") as HTMLElement | null;
 
 const loginForm = document.getElementById("login-form") as HTMLFormElement | null;
 const signupForm = document.getElementById("signup-form") as HTMLFormElement | null;
 const logoutButton = document.getElementById("logout-button") as HTMLButtonElement | null;
 const goToSignupButton = document.getElementById("go-to-signup") as HTMLButtonElement | null;
 const goToLoginButton = document.getElementById("go-to-login") as HTMLButtonElement | null;
+const goToCreateEventButton = document.getElementById("go-to-create-event") as HTMLButtonElement | null;
+const backToDashboardButton = document.getElementById("back-to-dashboard") as HTMLButtonElement | null;
 
 const eventForm = document.getElementById("event-form") as HTMLFormElement | null;
 const eventNameInput = document.getElementById("event-name") as HTMLInputElement | null;
@@ -98,7 +101,7 @@ const seedEventTemplates: SeedEventTemplate[] = [
   }
 ];
 let currentUser: Pick<User, "name" | "email"> | null = null;
-type AppView = "login" | "signup" | "dashboard";
+type AppView = "login" | "signup" | "dashboard" | "create-event";
 type SearchFilters = {
   city: string;
   genre: string;
@@ -250,27 +253,39 @@ function setHash(view: AppView): void {
 }
 
 function showLogin(updateHash = true): void {
-  if (!loginView || !signupView || !dashboardView) return;
+  if (!loginView || !signupView || !dashboardView || !createEventView) return;
   loginView.hidden = false;
   signupView.hidden = true;
   dashboardView.hidden = true;
+  createEventView.hidden = true;
   if (updateHash) setHash("login");
 }
 
 function showSignup(updateHash = true): void {
-  if (!loginView || !signupView || !dashboardView) return;
+  if (!loginView || !signupView || !dashboardView || !createEventView) return;
   loginView.hidden = true;
   signupView.hidden = false;
   dashboardView.hidden = true;
+  createEventView.hidden = true;
   if (updateHash) setHash("signup");
 }
 
 function showDashboard(updateHash = true): void {
-  if (!loginView || !signupView || !dashboardView) return;
+  if (!loginView || !signupView || !dashboardView || !createEventView) return;
   loginView.hidden = true;
   signupView.hidden = true;
   dashboardView.hidden = false;
+  createEventView.hidden = true;
   if (updateHash) setHash("dashboard");
+}
+
+function showCreateEvent(updateHash = true): void {
+  if (!loginView || !signupView || !dashboardView || !createEventView) return;
+  loginView.hidden = true;
+  signupView.hidden = true;
+  dashboardView.hidden = true;
+  createEventView.hidden = false;
+  if (updateHash) setHash("create-event");
 }
 
 function renderEvents(): void {
@@ -371,6 +386,15 @@ function handleRouteChange(): void {
     return;
   }
 
+  if (route === "create-event") {
+    if (!currentUser) {
+      showLogin();
+      return;
+    }
+    showCreateEvent(false);
+    return;
+  }
+
   if (route === "login" && currentUser) {
     showDashboard();
     renderEvents();
@@ -387,6 +411,16 @@ goToSignupButton?.addEventListener("click", () => {
 
 goToLoginButton?.addEventListener("click", () => {
   showLogin();
+});
+
+goToCreateEventButton?.addEventListener("click", () => {
+  showCreateEvent();
+});
+
+backToDashboardButton?.addEventListener("click", () => {
+  showDashboard();
+  renderEvents();
+  refreshSearchResultsFromCurrentFilters();
 });
 
 signupForm?.addEventListener("submit", (event) => {
@@ -559,6 +593,7 @@ eventForm?.addEventListener("submit", (event) => {
   eventDateInput.value = "";
   eventVenueInput.value = "";
 
+  showDashboard();
   renderEvents();
   refreshSearchResultsFromCurrentFilters();
 });
