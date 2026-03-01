@@ -148,6 +148,16 @@ function dateFromNow(daysFromNow: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+function isPastDate(dateString: string): boolean {
+  const selectedDate = new Date(dateString);
+  selectedDate.setHours(0, 0, 0, 0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return selectedDate < today;
+}
+
 const seededEvents: SeedEvent[] = seedEventTemplates.map((eventTemplate) => ({
   ...eventTemplate,
   date: dateFromNow(eventTemplate.daysFromNow)
@@ -272,9 +282,18 @@ signupForm?.addEventListener("submit", (event) => {
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") || "");
+  const acceptedTerms = formData.get("terms") === "on";
 
   if (!name || !email || !password) {
     alert("Please enter name, email, and password to create your account.");
+    return;
+  }
+  if (password.length < 8) {
+    alert("Password must be at least 8 characters long.");
+    return;
+  }
+  if (!acceptedTerms) {
+    alert("Please accept Terms and Privacy Policy to continue.");
     return;
   }
 
@@ -365,6 +384,10 @@ eventForm?.addEventListener("submit", (event) => {
 
   if (!name || !city || !genre || !date || !venue) {
     alert("Please complete all event details before publishing.");
+    return;
+  }
+  if (isPastDate(date)) {
+    alert("Event date must be today or a future date.");
     return;
   }
 
