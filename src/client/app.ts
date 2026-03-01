@@ -89,6 +89,7 @@ const seedEventTemplates: SeedEventTemplate[] = [
   }
 ];
 let currentUser: Pick<User, "name" | "email"> | null = null;
+type AppView = "login" | "signup" | "dashboard";
 
 function loadUsersFromStorage(): User[] {
   const raw = localStorage.getItem(STORAGE_KEYS.users);
@@ -152,25 +153,35 @@ const seededEvents: SeedEvent[] = seedEventTemplates.map((eventTemplate) => ({
   date: dateFromNow(eventTemplate.daysFromNow)
 }));
 
-function showLogin(): void {
+function setHash(view: AppView): void {
+  const targetHash = `#/${view}`;
+  if (window.location.hash !== targetHash) {
+    window.location.hash = targetHash;
+  }
+}
+
+function showLogin(updateHash = true): void {
   if (!loginView || !signupView || !dashboardView) return;
   loginView.hidden = false;
   signupView.hidden = true;
   dashboardView.hidden = true;
+  if (updateHash) setHash("login");
 }
 
-function showSignup(): void {
+function showSignup(updateHash = true): void {
   if (!loginView || !signupView || !dashboardView) return;
   loginView.hidden = true;
   signupView.hidden = false;
   dashboardView.hidden = true;
+  if (updateHash) setHash("signup");
 }
 
-function showDashboard(): void {
+function showDashboard(updateHash = true): void {
   if (!loginView || !signupView || !dashboardView) return;
   loginView.hidden = true;
   signupView.hidden = true;
   dashboardView.hidden = false;
+  if (updateHash) setHash("dashboard");
 }
 
 function renderEvents(): void {
@@ -220,6 +231,28 @@ function refreshSearchResultsFromCurrentFilters(): void {
     (eventItem) => eventItem.city === city && eventItem.genre === genre
   );
   renderSearchResults(filteredEvents);
+}
+
+function handleRouteChange(): void {
+  const route = window.location.hash.replace(/^#\//, "");
+
+  if (route === "signup") {
+    showSignup(false);
+    return;
+  }
+
+  if (route === "dashboard") {
+    if (!currentUser) {
+      showLogin();
+      return;
+    }
+    showDashboard(false);
+    renderEvents();
+    refreshSearchResultsFromCurrentFilters();
+    return;
+  }
+
+  showLogin(false);
 }
 
 goToSignupButton?.addEventListener("click", () => {
@@ -359,9 +392,12 @@ events.push(...loadEventsFromStorage());
 currentUser = loadCurrentUserFromStorage();
 
 if (currentUser) {
-  showDashboard();
+  showDashboard(false);
   renderEvents();
   renderSearchResults(getSearchableEvents());
 } else {
-  showLogin();
+  showLogin(false);
 }
+
+window.addEventListener("hashchange", handleRouteChange);
+handleRouteChange();
