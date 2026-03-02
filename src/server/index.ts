@@ -1,6 +1,7 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import nodemailer, { type Transporter } from "nodemailer";
 
 const HOST = process.env.HOST;
 const parsedPort = Number(process.env.PORT);
@@ -12,6 +13,8 @@ if (!Number.isInteger(parsedPort) || parsedPort < 0 || parsedPort > 65535) {
 }
 const PORT = parsedPort;
 const CLIENT_DIR = path.resolve(process.cwd(), "dist", "client");
+const ETHEREAL_USER = process.env.ETHEREAL_USER;
+const ETHEREAL_PASS = process.env.ETHEREAL_PASS;
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -21,7 +24,186 @@ const MIME_TYPES: Record<string, string> = {
   ".ico": "image/x-icon"
 };
 
-const server = http.createServer((req, res) => {
+type BookingPayload = {
+  eventName: string;
+  eventDate: string;
+  eventVenue: string;
+  eventCity: string;
+  eventGenre: string;
+  ticketCount: number;
+  passType: string;
+  buyerEmail: string;
+};
+
+type MailContext = {
+  transporter: Transporter;
+  accountUser: string;
+};
+
+let mailContext: MailContext | null = null;
+
+function sendJson(
+  res: http.ServerResponse,
+  statusCode: number,
+  payload: Record<string, unknown>
+): void {
+  res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+  res.end(JSON.stringify(payload));
+}
+
+function readJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    let raw = "";
+    req.on("data", (chunk) => {
+      raw += chunk;
+      if (raw.length > 1_000_000) {
+        reject(new Error("Payload too large"));
+      }
+    });
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(raw || "{}"));
+      } catch {
+        reject(new Error("Invalid JSON payload"));
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+async function getMailContext(): Promise<MailContext> {
+  if (mailContext) return mailContext;
+
+  if (ETHEREAL_USER && ETHEREAL_PASS) {
+    mailContext = {
+      transporter: nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: ETHEREAL_USER,
+          pass: ETHEREAL_PASS
+        }
+      }),
+      accountUser: ETHEREAL_USER
+    };
+    return mailContext;
+  }
+
+  const account = await nodemailer.createTestAccount();
+  mailContext = {
+    transporter: nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: account.user,
+        pass: account.pass
+      }
+    }),
+    accountUser: account.user
+  };
+
+  console.log(
+    `[mail] Created Ethereal account for testing.\n` +
+      `[mail] user: ${account.user}\n` +
+      `[mail] pass: ${account.pass}`
+  );
+  return mailContext;
+}
+
+function validateBookingPayload(payload: unknown): BookingPayload | null {
+  const candidate = payload as Partial<BookingPayload>;
+  if (
+    typeof candidate?.eventName !== "string" ||
+    typeof candidate?.eventDate !== "string" ||
+    typeof candidate?.eventVenue !== "string" ||
+    typeof candidate?.eventCity !== "string" ||
+    typeof candidate?.eventGenre !== "string" ||
+    typeof candidate?.passType !== "string" ||
+    typeof candidate?.buyerEmail !== "string" ||
+    typeof candidate?.ticketCount !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    eventName: candidate.eventName.trim(),
+    eventDate: candidate.eventDate.trim(),
+    eventVenue: candidate.eventVenue.trim(),
+    eventCity: candidate.eventCity.trim(),
+    eventGenre: candidate.eventGenre.trim(),
+    passType: candidate.passType.trim(),
+    buyerEmail: candidate.buyerEmail.trim().toLowerCase(),
+    ticketCount: candidate.ticketCount
+  };
+}
+
+const server = http.createServer(async (req, res) => {
+  if (req.method === "POST" && req.url === "/api/bookings") {
+    try {
+      const payload = validateBookingPayload(await readJsonBody(req));
+      if (!payload) {
+        sendJson(res, 400, { ok: false, error: "Invalid booking payload." });
+        return;
+      }
+
+      if (!payload.eventName || !payload.eventDate || !payload.eventVenue) {
+        sendJson(res, 400, { ok: false, error: "Missing event details." });
+        return;
+      }
+      if (!payload.passType || !payload.buyerEmail || payload.ticketCount < 1) {
+        sendJson(res, 400, { ok: false, error: "Invalid ticket selection." });
+        return;
+      }
+
+      const bookingId = `BK-${Date.now()}`;
+      const paymentLink = `https://payments.bliss.test/checkout/${bookingId}`;
+      const { transporter, accountUser } = await getMailContext();
+
+      const mailInfo = await transporter.sendMail({
+        from: '"Bliss Tickets" <no-reply@bliss.test>',
+        to: payload.buyerEmail,
+        subject: `Bliss Booking Created: ${payload.eventName}`,
+        text:
+          `Hi,\n\n` +
+          `Your booking is created for ${payload.eventName}.\n` +
+          `City: ${payload.eventCity}\n` +
+          `Venue: ${payload.eventVenue}\n` +
+          `Date: ${payload.eventDate}\n` +
+          `Pass: ${payload.passType}\n` +
+          `Tickets: ${payload.ticketCount}\n\n` +
+          `Complete payment: ${paymentLink}\n\n` +
+          `Booking ID: ${bookingId}\n`,
+        html:
+          `<p>Your booking is created for <strong>${payload.eventName}</strong>.</p>` +
+          `<ul>` +
+          `<li>City: ${payload.eventCity}</li>` +
+          `<li>Venue: ${payload.eventVenue}</li>` +
+          `<li>Date: ${payload.eventDate}</li>` +
+          `<li>Pass: ${payload.passType}</li>` +
+          `<li>Tickets: ${payload.ticketCount}</li>` +
+          `</ul>` +
+          `<p><a href="${paymentLink}">Complete payment</a></p>` +
+          `<p>Booking ID: <strong>${bookingId}</strong></p>`
+      });
+
+      const previewUrl = nodemailer.getTestMessageUrl(mailInfo);
+      sendJson(res, 201, {
+        ok: true,
+        bookingId,
+        paymentLink,
+        previewUrl,
+        mailAccount: accountUser
+      });
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to process booking.";
+      sendJson(res, 500, { ok: false, error: message });
+      return;
+    }
+  }
+
   const urlPath = req.url ?? "/";
   const requestedPath = urlPath === "/" ? "/index.html" : urlPath;
   const filePath = path.join(CLIENT_DIR, requestedPath);
