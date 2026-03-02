@@ -198,6 +198,7 @@
 
         <h3>Search Results</h3>
         <ul id="search-results" aria-live="polite"></ul>
+        <p id="booking-status" class="booking-status" hidden></p>
 
         <h3>Published Events</h3>
         <ul id="event-list" aria-live="polite"></ul>
@@ -270,6 +271,53 @@
 
         <button id="back-to-dashboard" type="button">Back to Dashboard</button>
       </section>
+
+      <dialog id="booking-dialog" class="booking-dialog">
+        <form id="booking-form" method="dialog">
+          <h3>Book Tickets</h3>
+
+          <label for="booking-event-name">Event</label>
+          <input id="booking-event-name" name="eventName" type="text" readonly required />
+
+          <label for="booking-event-date">Date</label>
+          <input id="booking-event-date" name="eventDate" type="text" readonly required />
+
+          <label for="booking-event-venue">Venue</label>
+          <input id="booking-event-venue" name="eventVenue" type="text" readonly required />
+
+          <input id="booking-event-city" name="eventCity" type="hidden" />
+          <input id="booking-event-genre" name="eventGenre" type="hidden" />
+
+          <label for="booking-pass-type">Pass Type</label>
+          <select id="booking-pass-type" name="passType" required>
+            <option value="">Select pass</option>
+            <option value="general">General Admission</option>
+            <option value="fan-pit">Fan Pit</option>
+            <option value="vip">VIP</option>
+            <option value="vvip">VVIP</option>
+          </select>
+
+          <label for="booking-ticket-count">Number of Tickets</label>
+          <input
+            id="booking-ticket-count"
+            name="ticketCount"
+            type="number"
+            min="1"
+            max="10"
+            step="1"
+            value="1"
+            required
+          />
+
+          <label for="booking-email">Booking Email</label>
+          <input id="booking-email" name="buyerEmail" type="email" placeholder="you@example.com" required />
+
+          <div class="booking-actions">
+            <button id="booking-cancel" type="button">Cancel</button>
+            <button id="booking-submit" type="submit">Send Payment Link</button>
+          </div>
+        </form>
+      </dialog>
     </main>
 
     <script src="/app.js"></script>
