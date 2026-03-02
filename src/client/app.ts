@@ -49,13 +49,11 @@ const goToSignupButton = document.getElementById("go-to-signup") as HTMLButtonEl
 const goToLoginButton = document.getElementById("go-to-login") as HTMLButtonElement | null;
 const goToCreateEventButton = document.getElementById("go-to-create-event") as HTMLButtonElement | null;
 const backToDashboardButton = document.getElementById("back-to-dashboard") as HTMLButtonElement | null;
-const openDobCalendarButton = document.getElementById("open-dob-calendar") as HTMLButtonElement | null;
 const dobCalendar = document.getElementById("dob-calendar") as HTMLElement | null;
 const dobPrevMonthButton = document.getElementById("dob-prev-month") as HTMLButtonElement | null;
 const dobNextMonthButton = document.getElementById("dob-next-month") as HTMLButtonElement | null;
 const dobMonthLabel = document.getElementById("dob-month-label") as HTMLElement | null;
 const dobDaysGrid = document.getElementById("dob-days-grid") as HTMLElement | null;
-const openEventCalendarButton = document.getElementById("open-event-calendar") as HTMLButtonElement | null;
 const eventCalendar = document.getElementById("event-calendar") as HTMLElement | null;
 const eventPrevMonthButton = document.getElementById("event-prev-month") as HTMLButtonElement | null;
 const eventNextMonthButton = document.getElementById("event-next-month") as HTMLButtonElement | null;
@@ -673,20 +671,20 @@ backToDashboardButton?.addEventListener("click", () => {
   refreshSearchResultsFromCurrentFilters();
 });
 
-openDobCalendarButton?.addEventListener("click", () => {
-  if (dobCalendar?.hidden) {
-    openDobCalendar();
-    return;
-  }
-  closeDobCalendar();
+signupDobInput?.addEventListener("click", () => {
+  openDobCalendar();
 });
 
-openEventCalendarButton?.addEventListener("click", () => {
-  if (eventCalendar?.hidden) {
-    openEventCalendar();
-    return;
-  }
-  closeEventCalendar();
+signupDobInput?.addEventListener("focus", () => {
+  openDobCalendar();
+});
+
+eventDateInput?.addEventListener("click", () => {
+  openEventCalendar();
+});
+
+eventDateInput?.addEventListener("focus", () => {
+  openEventCalendar();
 });
 
 dobPrevMonthButton?.addEventListener("click", () => {
@@ -733,7 +731,6 @@ document.addEventListener("click", (event) => {
   if (activeDobCalendar && !activeDobCalendar.hidden) {
     if (
       activeDobCalendar.contains(target) ||
-      openDobCalendarButton?.contains(target) ||
       signupDobInput?.contains(target)
     ) {
       return;
@@ -744,7 +741,6 @@ document.addEventListener("click", (event) => {
   if (activeEventCalendar && !activeEventCalendar.hidden) {
     if (
       activeEventCalendar.contains(target) ||
-      openEventCalendarButton?.contains(target) ||
       eventDateInput?.contains(target)
     ) {
       return;
