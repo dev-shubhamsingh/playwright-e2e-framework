@@ -51,7 +51,35 @@
           <input id="signup-phone" name="phone" type="tel" placeholder="+91 98765 43210" required />
 
           <label for="signup-dob">Date of Birth</label>
-          <input id="signup-dob" name="dob" type="date" required />
+          <div class="date-picker">
+            <input
+              id="signup-dob"
+              name="dob"
+              type="text"
+              placeholder="YYYY-MM-DD"
+              autocomplete="off"
+              readonly
+              required
+            />
+            <button id="open-dob-calendar" type="button">Pick Date</button>
+          </div>
+          <div id="dob-calendar" class="calendar-popover" hidden>
+            <div class="calendar-header">
+              <button id="dob-prev-month" type="button" aria-label="Previous month">&#8249;</button>
+              <strong id="dob-month-label">Month Year</strong>
+              <button id="dob-next-month" type="button" aria-label="Next month">&#8250;</button>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>Su</span>
+              <span>Mo</span>
+              <span>Tu</span>
+              <span>We</span>
+              <span>Th</span>
+              <span>Fr</span>
+              <span>Sa</span>
+            </div>
+            <div id="dob-days-grid" class="calendar-days" role="grid" aria-label="Date of birth calendar"></div>
+          </div>
 
           <label for="signup-city">City</label>
           <select id="signup-city" name="city" required>
@@ -196,7 +224,35 @@
           </select>
 
           <label for="event-date">Date</label>
-          <input id="event-date" name="eventDate" type="date" required />
+          <div class="date-picker">
+            <input
+              id="event-date"
+              name="eventDate"
+              type="text"
+              placeholder="YYYY-MM-DD"
+              autocomplete="off"
+              readonly
+              required
+            />
+            <button id="open-event-calendar" type="button">Pick Date</button>
+          </div>
+          <div id="event-calendar" class="calendar-popover" hidden>
+            <div class="calendar-header">
+              <button id="event-prev-month" type="button" aria-label="Previous month">&#8249;</button>
+              <strong id="event-month-label">Month Year</strong>
+              <button id="event-next-month" type="button" aria-label="Next month">&#8250;</button>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>Su</span>
+              <span>Mo</span>
+              <span>Tu</span>
+              <span>We</span>
+              <span>Th</span>
+              <span>Fr</span>
+              <span>Sa</span>
+            </div>
+            <div id="event-days-grid" class="calendar-days" role="grid" aria-label="Event date calendar"></div>
+          </div>
 
           <label for="event-venue">Venue</label>
           <input id="event-venue" name="eventVenue" type="text" placeholder="Dockyard Arena" required />

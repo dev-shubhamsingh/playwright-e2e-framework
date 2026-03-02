@@ -130,6 +130,89 @@ form {
   margin-top: 10px;
 }
 
+.date-picker {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+#open-dob-calendar {
+  white-space: nowrap;
+}
+
+.calendar-popover {
+  border: 1px solid #d6dfeb;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 10px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  display: grid;
+  gap: 8px;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.calendar-header button {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  padding: 0;
+}
+
+#dob-month-label {
+  font-size: 0.95rem;
+}
+
+.calendar-weekdays,
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+.calendar-day {
+  border: 1px solid #d6dfeb;
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 8px;
+  height: 34px;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  background: #eef6ff;
+}
+
+.calendar-day.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.calendar-day:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.calendar-empty {
+  height: 34px;
+}
+
 label {
   font-weight: 600;
   font-size: 0.94rem;

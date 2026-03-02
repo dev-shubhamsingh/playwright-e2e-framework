@@ -49,6 +49,18 @@ const goToSignupButton = document.getElementById("go-to-signup") as HTMLButtonEl
 const goToLoginButton = document.getElementById("go-to-login") as HTMLButtonElement | null;
 const goToCreateEventButton = document.getElementById("go-to-create-event") as HTMLButtonElement | null;
 const backToDashboardButton = document.getElementById("back-to-dashboard") as HTMLButtonElement | null;
+const openDobCalendarButton = document.getElementById("open-dob-calendar") as HTMLButtonElement | null;
+const dobCalendar = document.getElementById("dob-calendar") as HTMLElement | null;
+const dobPrevMonthButton = document.getElementById("dob-prev-month") as HTMLButtonElement | null;
+const dobNextMonthButton = document.getElementById("dob-next-month") as HTMLButtonElement | null;
+const dobMonthLabel = document.getElementById("dob-month-label") as HTMLElement | null;
+const dobDaysGrid = document.getElementById("dob-days-grid") as HTMLElement | null;
+const openEventCalendarButton = document.getElementById("open-event-calendar") as HTMLButtonElement | null;
+const eventCalendar = document.getElementById("event-calendar") as HTMLElement | null;
+const eventPrevMonthButton = document.getElementById("event-prev-month") as HTMLButtonElement | null;
+const eventNextMonthButton = document.getElementById("event-next-month") as HTMLButtonElement | null;
+const eventMonthLabel = document.getElementById("event-month-label") as HTMLElement | null;
+const eventDaysGrid = document.getElementById("event-days-grid") as HTMLElement | null;
 
 const eventForm = document.getElementById("event-form") as HTMLFormElement | null;
 const eventNameInput = document.getElementById("event-name") as HTMLInputElement | null;
@@ -61,6 +73,7 @@ const searchForm = document.getElementById("search-form") as HTMLFormElement | n
 const searchCityInput = document.getElementById("search-city") as HTMLSelectElement | null;
 const searchGenreInput = document.getElementById("search-genre") as HTMLSelectElement | null;
 const searchResults = document.getElementById("search-results") as HTMLUListElement | null;
+const signupDobInput = document.getElementById("signup-dob") as HTMLInputElement | null;
 
 const users: User[] = [];
 const events: EventItem[] = [];
@@ -107,6 +120,10 @@ type SearchFilters = {
   genre: string;
 };
 type ToastType = "success" | "error" | "info";
+let dobCurrentMonth = 0;
+let dobCurrentYear = 0;
+let eventCurrentMonth = 0;
+let eventCurrentYear = 0;
 
 function loadUsersFromStorage(): User[] {
   const raw = localStorage.getItem(STORAGE_KEYS.users);
@@ -257,6 +274,53 @@ function dateFromNow(daysFromNow: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+function formatDateIso(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function getDobMinDate(): Date {
+  return new Date(1900, 0, 1);
+}
+
+function getDobMaxDate(): Date {
+  const today = new Date();
+  return new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
+}
+
+function getEventMinDate(): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function getEventMaxDate(): Date {
+  const today = new Date();
+  return new Date(today.getFullYear() + 5, today.getMonth(), today.getDate());
+}
+
+function parseIsoDate(dateString: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(year, month - 1, day);
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+  return parsed;
+}
+
+function isDateWithinRange(date: Date, min: Date, max: Date): boolean {
+  return date >= min && date <= max;
+}
+
 function isPastDate(dateString: string): boolean {
   const selectedDate = new Date(dateString);
   selectedDate.setHours(0, 0, 0, 0);
@@ -301,6 +365,7 @@ function showLogin(updateHash = true): void {
   signupView.hidden = true;
   dashboardView.hidden = true;
   createEventView.hidden = true;
+  closeAllCalendars();
   if (updateHash) setHash("login");
 }
 
@@ -310,6 +375,7 @@ function showSignup(updateHash = true): void {
   signupView.hidden = false;
   dashboardView.hidden = true;
   createEventView.hidden = true;
+  closeAllCalendars();
   if (updateHash) setHash("signup");
 }
 
@@ -319,6 +385,7 @@ function showDashboard(updateHash = true): void {
   signupView.hidden = true;
   dashboardView.hidden = false;
   createEventView.hidden = true;
+  closeAllCalendars();
   if (updateHash) setHash("dashboard");
 }
 
@@ -328,7 +395,147 @@ function showCreateEvent(updateHash = true): void {
   signupView.hidden = true;
   dashboardView.hidden = true;
   createEventView.hidden = false;
+  closeAllCalendars();
   if (updateHash) setHash("create-event");
+}
+
+function renderDobCalendar(): void {
+  if (!dobDaysGrid || !dobMonthLabel || !signupDobInput) return;
+
+  dobDaysGrid.innerHTML = "";
+  const monthStart = new Date(dobCurrentYear, dobCurrentMonth, 1);
+  const startWeekday = monthStart.getDay();
+  const daysInMonth = new Date(dobCurrentYear, dobCurrentMonth + 1, 0).getDate();
+  const selectedDate = signupDobInput.value ? parseIsoDate(signupDobInput.value) : null;
+  const minDate = getDobMinDate();
+  const maxDate = getDobMaxDate();
+
+  dobMonthLabel.textContent = monthStart.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric"
+  });
+
+  for (let i = 0; i < startWeekday; i += 1) {
+    const empty = document.createElement("span");
+    empty.className = "calendar-empty";
+    dobDaysGrid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = new Date(dobCurrentYear, dobCurrentMonth, day);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar-day";
+    button.textContent = String(day);
+
+    const isAllowed = isDateWithinRange(date, minDate, maxDate);
+    button.disabled = !isAllowed;
+    if (
+      selectedDate &&
+      selectedDate.getFullYear() === date.getFullYear() &&
+      selectedDate.getMonth() === date.getMonth() &&
+      selectedDate.getDate() === date.getDate()
+    ) {
+      button.classList.add("selected");
+    }
+
+    button.addEventListener("click", () => {
+      signupDobInput.value = formatDateIso(date);
+      closeDobCalendar();
+    });
+
+    dobDaysGrid.appendChild(button);
+  }
+}
+
+function openDobCalendar(): void {
+  if (!dobCalendar || !signupDobInput) return;
+  closeEventCalendar();
+
+  const selected = signupDobInput.value ? parseIsoDate(signupDobInput.value) : null;
+  const maxDob = getDobMaxDate();
+  const base = selected ?? maxDob;
+  dobCurrentMonth = base.getMonth();
+  dobCurrentYear = base.getFullYear();
+  renderDobCalendar();
+  dobCalendar.hidden = false;
+}
+
+function closeDobCalendar(): void {
+  if (!dobCalendar) return;
+  dobCalendar.hidden = true;
+}
+
+function renderEventCalendar(): void {
+  if (!eventDaysGrid || !eventMonthLabel || !eventDateInput) return;
+
+  eventDaysGrid.innerHTML = "";
+  const monthStart = new Date(eventCurrentYear, eventCurrentMonth, 1);
+  const startWeekday = monthStart.getDay();
+  const daysInMonth = new Date(eventCurrentYear, eventCurrentMonth + 1, 0).getDate();
+  const selectedDate = eventDateInput.value ? parseIsoDate(eventDateInput.value) : null;
+  const minDate = getEventMinDate();
+  const maxDate = getEventMaxDate();
+
+  eventMonthLabel.textContent = monthStart.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric"
+  });
+
+  for (let i = 0; i < startWeekday; i += 1) {
+    const empty = document.createElement("span");
+    empty.className = "calendar-empty";
+    eventDaysGrid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = new Date(eventCurrentYear, eventCurrentMonth, day);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar-day";
+    button.textContent = String(day);
+
+    const isAllowed = isDateWithinRange(date, minDate, maxDate);
+    button.disabled = !isAllowed;
+    if (
+      selectedDate &&
+      selectedDate.getFullYear() === date.getFullYear() &&
+      selectedDate.getMonth() === date.getMonth() &&
+      selectedDate.getDate() === date.getDate()
+    ) {
+      button.classList.add("selected");
+    }
+
+    button.addEventListener("click", () => {
+      eventDateInput.value = formatDateIso(date);
+      closeEventCalendar();
+    });
+
+    eventDaysGrid.appendChild(button);
+  }
+}
+
+function openEventCalendar(): void {
+  if (!eventCalendar || !eventDateInput) return;
+  closeDobCalendar();
+
+  const selected = eventDateInput.value ? parseIsoDate(eventDateInput.value) : null;
+  const minEventDate = getEventMinDate();
+  const base = selected ?? minEventDate;
+  eventCurrentMonth = base.getMonth();
+  eventCurrentYear = base.getFullYear();
+  renderEventCalendar();
+  eventCalendar.hidden = false;
+}
+
+function closeEventCalendar(): void {
+  if (!eventCalendar) return;
+  eventCalendar.hidden = true;
+}
+
+function closeAllCalendars(): void {
+  closeDobCalendar();
+  closeEventCalendar();
 }
 
 function renderEvents(): void {
@@ -466,6 +673,86 @@ backToDashboardButton?.addEventListener("click", () => {
   refreshSearchResultsFromCurrentFilters();
 });
 
+openDobCalendarButton?.addEventListener("click", () => {
+  if (dobCalendar?.hidden) {
+    openDobCalendar();
+    return;
+  }
+  closeDobCalendar();
+});
+
+openEventCalendarButton?.addEventListener("click", () => {
+  if (eventCalendar?.hidden) {
+    openEventCalendar();
+    return;
+  }
+  closeEventCalendar();
+});
+
+dobPrevMonthButton?.addEventListener("click", () => {
+  dobCurrentMonth -= 1;
+  if (dobCurrentMonth < 0) {
+    dobCurrentMonth = 11;
+    dobCurrentYear -= 1;
+  }
+  renderDobCalendar();
+});
+
+dobNextMonthButton?.addEventListener("click", () => {
+  dobCurrentMonth += 1;
+  if (dobCurrentMonth > 11) {
+    dobCurrentMonth = 0;
+    dobCurrentYear += 1;
+  }
+  renderDobCalendar();
+});
+
+eventPrevMonthButton?.addEventListener("click", () => {
+  eventCurrentMonth -= 1;
+  if (eventCurrentMonth < 0) {
+    eventCurrentMonth = 11;
+    eventCurrentYear -= 1;
+  }
+  renderEventCalendar();
+});
+
+eventNextMonthButton?.addEventListener("click", () => {
+  eventCurrentMonth += 1;
+  if (eventCurrentMonth > 11) {
+    eventCurrentMonth = 0;
+    eventCurrentYear += 1;
+  }
+  renderEventCalendar();
+});
+
+document.addEventListener("click", (event) => {
+  const target = event.target as Node;
+  const activeDobCalendar = dobCalendar;
+  const activeEventCalendar = eventCalendar;
+
+  if (activeDobCalendar && !activeDobCalendar.hidden) {
+    if (
+      activeDobCalendar.contains(target) ||
+      openDobCalendarButton?.contains(target) ||
+      signupDobInput?.contains(target)
+    ) {
+      return;
+    }
+    closeDobCalendar();
+  }
+
+  if (activeEventCalendar && !activeEventCalendar.hidden) {
+    if (
+      activeEventCalendar.contains(target) ||
+      openEventCalendarButton?.contains(target) ||
+      eventDateInput?.contains(target)
+    ) {
+      return;
+    }
+    closeEventCalendar();
+  }
+});
+
 signupForm?.addEventListener("submit", (event) => {
   event.preventDefault();
 
@@ -488,6 +775,11 @@ signupForm?.addEventListener("submit", (event) => {
 
   if (!name || !email || !phone || !dob || !city || !interest || !password) {
     alert("Please complete all required signup fields.");
+    return;
+  }
+  const parsedDob = parseIsoDate(dob);
+  if (!parsedDob || !isDateWithinRange(parsedDob, getDobMinDate(), getDobMaxDate())) {
+    alert("Please select a valid date of birth (age 13+).");
     return;
   }
   if (password.length < 8) {
