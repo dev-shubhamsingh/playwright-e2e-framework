@@ -71,6 +71,18 @@ const searchForm = document.getElementById("search-form") as HTMLFormElement | n
 const searchCityInput = document.getElementById("search-city") as HTMLSelectElement | null;
 const searchGenreInput = document.getElementById("search-genre") as HTMLSelectElement | null;
 const searchResults = document.getElementById("search-results") as HTMLUListElement | null;
+const bookingStatus = document.getElementById("booking-status") as HTMLParagraphElement | null;
+const bookingDialog = document.getElementById("booking-dialog") as HTMLDialogElement | null;
+const bookingForm = document.getElementById("booking-form") as HTMLFormElement | null;
+const bookingEventNameInput = document.getElementById("booking-event-name") as HTMLInputElement | null;
+const bookingEventDateInput = document.getElementById("booking-event-date") as HTMLInputElement | null;
+const bookingEventVenueInput = document.getElementById("booking-event-venue") as HTMLInputElement | null;
+const bookingEventCityInput = document.getElementById("booking-event-city") as HTMLInputElement | null;
+const bookingEventGenreInput = document.getElementById("booking-event-genre") as HTMLInputElement | null;
+const bookingPassTypeInput = document.getElementById("booking-pass-type") as HTMLSelectElement | null;
+const bookingTicketCountInput = document.getElementById("booking-ticket-count") as HTMLInputElement | null;
+const bookingEmailInput = document.getElementById("booking-email") as HTMLInputElement | null;
+const bookingCancelButton = document.getElementById("booking-cancel") as HTMLButtonElement | null;
 const signupDobInput = document.getElementById("signup-dob") as HTMLInputElement | null;
 
 const users: User[] = [];
@@ -116,6 +128,13 @@ type AppView = "login" | "signup" | "dashboard" | "create-event";
 type SearchFilters = {
   city: string;
   genre: string;
+};
+type BookingApiResponse = {
+  ok: boolean;
+  error?: string;
+  bookingId?: string;
+  paymentLink?: string;
+  previewUrl?: string | false;
 };
 type ToastType = "success" | "error" | "info";
 let dobCurrentMonth = 0;
@@ -568,6 +587,68 @@ function renderEvents(): void {
   });
 }
 
+function showBookingStatus(message: string, links?: Array<{ label: string; href: string }>): void {
+  if (!bookingStatus) return;
+  bookingStatus.hidden = false;
+  bookingStatus.innerHTML = "";
+
+  const messageNode = document.createElement("span");
+  messageNode.textContent = message;
+  bookingStatus.appendChild(messageNode);
+
+  if (!links || links.length === 0) return;
+  links.forEach((link, index) => {
+    const separator = document.createElement("span");
+    separator.textContent = index === 0 ? " " : " | ";
+    bookingStatus.appendChild(separator);
+
+    const anchor = document.createElement("a");
+    anchor.href = link.href;
+    anchor.target = "_blank";
+    anchor.rel = "noreferrer noopener";
+    anchor.textContent = link.label;
+    bookingStatus.appendChild(anchor);
+  });
+}
+
+function clearBookingStatus(): void {
+  if (!bookingStatus) return;
+  bookingStatus.hidden = true;
+  bookingStatus.textContent = "";
+}
+
+function openBookingDialog(eventItem: SeedEvent): void {
+  if (
+    !bookingDialog ||
+    !bookingEventNameInput ||
+    !bookingEventDateInput ||
+    !bookingEventVenueInput ||
+    !bookingEventCityInput ||
+    !bookingEventGenreInput ||
+    !bookingPassTypeInput ||
+    !bookingTicketCountInput ||
+    !bookingEmailInput
+  ) {
+    return;
+  }
+
+  bookingEventNameInput.value = eventItem.name;
+  bookingEventDateInput.value = eventItem.date;
+  bookingEventVenueInput.value = eventItem.venue;
+  bookingEventCityInput.value = eventItem.city;
+  bookingEventGenreInput.value = eventItem.genre;
+  bookingPassTypeInput.value = "";
+  bookingTicketCountInput.value = "1";
+  bookingEmailInput.value = currentUser?.email ?? "";
+
+  bookingDialog.showModal();
+}
+
+function closeBookingDialog(): void {
+  if (!bookingDialog) return;
+  bookingDialog.close();
+}
+
 function renderSearchResults(results: SeedEvent[]): void {
   if (!searchResults) return;
   searchResults.innerHTML = "";
@@ -581,7 +662,24 @@ function renderSearchResults(results: SeedEvent[]): void {
 
   sortEventsByDate(results).forEach((eventItem, index) => {
     const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
+    const text = document.createElement("span");
+    text.className = "search-result-text";
+    text.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
+
+    const bookButton = document.createElement("button");
+    bookButton.type = "button";
+    bookButton.textContent = "Book Tickets";
+    bookButton.addEventListener("click", () => {
+      if (!currentUser) {
+        showToast("Please sign in before booking tickets.", "info");
+        showLogin();
+        return;
+      }
+      openBookingDialog(eventItem);
+    });
+
+    li.appendChild(text);
+    li.appendChild(bookButton);
     searchResults.appendChild(li);
   });
 }
@@ -618,6 +716,7 @@ function resetSearchState(): void {
   searchCityInput.value = "";
   searchGenreInput.value = "";
   searchResults.innerHTML = "";
+  clearBookingStatus();
 }
 
 function handleRouteChange(): void {
@@ -680,6 +779,10 @@ backToDashboardButton?.addEventListener("click", () => {
   showDashboard();
   renderEvents();
   refreshSearchResultsFromCurrentFilters();
+});
+
+bookingCancelButton?.addEventListener("click", () => {
+  closeBookingDialog();
 });
 
 signupDobInput?.addEventListener("click", () => {
@@ -850,6 +953,7 @@ loginForm?.addEventListener("submit", (event) => {
   showToast(`Welcome back, ${matchedUser.name}. You are now signed in.`, "success");
   showDashboard();
   renderEvents();
+  clearBookingStatus();
   renderSearchResults(getSearchableEvents());
 });
 
@@ -871,6 +975,76 @@ searchForm?.addEventListener("submit", (event) => {
   );
 
   renderSearchResults(filteredEvents);
+});
+
+bookingForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (!currentUser) {
+    showToast("Please sign in before booking tickets.", "info");
+    closeBookingDialog();
+    showLogin();
+    return;
+  }
+
+  const formData = new FormData(bookingForm);
+  const eventName = String(formData.get("eventName") || "").trim();
+  const eventDate = String(formData.get("eventDate") || "").trim();
+  const eventVenue = String(formData.get("eventVenue") || "").trim();
+  const eventCity = String(formData.get("eventCity") || "").trim();
+  const eventGenre = String(formData.get("eventGenre") || "").trim();
+  const passType = String(formData.get("passType") || "").trim();
+  const ticketCount = Number(formData.get("ticketCount") || 0);
+  const buyerEmail = String(formData.get("buyerEmail") || "")
+    .trim()
+    .toLowerCase();
+
+  if (!eventName || !eventDate || !eventVenue || !eventCity || !eventGenre) {
+    showToast("Missing event details for booking.", "error");
+    return;
+  }
+  if (!passType || !buyerEmail || !Number.isInteger(ticketCount) || ticketCount < 1) {
+    showToast("Select a pass type, valid ticket count, and booking email.", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventName,
+        eventDate,
+        eventVenue,
+        eventCity,
+        eventGenre,
+        passType,
+        ticketCount,
+        buyerEmail
+      })
+    });
+    const result = (await response.json()) as BookingApiResponse;
+
+    if (!response.ok || !result.ok || !result.bookingId || !result.paymentLink) {
+      showToast(result.error || "Booking failed. Please try again.", "error");
+      return;
+    }
+
+    const links = [{ label: "Payment link", href: result.paymentLink }];
+    if (result.previewUrl && typeof result.previewUrl === "string") {
+      links.push({ label: "View email", href: result.previewUrl });
+    }
+
+    showBookingStatus(
+      `Booking confirmed (${result.bookingId}). Payment link sent to ${buyerEmail}.`,
+      links
+    );
+    showToast("Booking created. Check your inbox or Ethereal preview.", "success");
+    bookingForm.reset();
+    closeBookingDialog();
+  } catch {
+    showToast("Booking request failed. Please try again.", "error");
+  }
 });
 
 eventForm?.addEventListener("submit", (event) => {
@@ -961,6 +1135,7 @@ if (currentUser) {
   renderSearchResults(getSearchableEvents());
 } else {
   showLogin(false);
+  clearBookingStatus();
 }
 
 window.addEventListener("hashchange", handleRouteChange);
