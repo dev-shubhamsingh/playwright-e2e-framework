@@ -223,6 +223,10 @@ function persistSearchFilters(filters: SearchFilters): void {
   localStorage.setItem(STORAGE_KEYS.searchFilters, JSON.stringify(filters));
 }
 
+function clearSearchFilters(): void {
+  localStorage.removeItem(STORAGE_KEYS.searchFilters);
+}
+
 function showToast(message: string, type: ToastType = "info"): void {
   const existingToast = document.getElementById("app-toast");
   if (existingToast) {
@@ -609,6 +613,13 @@ function hydrateSearchFilters(): void {
   searchGenreInput.value = filters.genre;
 }
 
+function resetSearchState(): void {
+  if (!searchCityInput || !searchGenreInput || !searchResults) return;
+  searchCityInput.value = "";
+  searchGenreInput.value = "";
+  searchResults.innerHTML = "";
+}
+
 function handleRouteChange(): void {
   const route = window.location.hash.replace(/^#\//, "");
 
@@ -934,6 +945,8 @@ eventForm?.addEventListener("submit", (event) => {
 logoutButton?.addEventListener("click", () => {
   currentUser = null;
   persistCurrentUser();
+  clearSearchFilters();
+  resetSearchState();
   showLogin();
 });
 
