@@ -83,6 +83,7 @@ const bookingPassTypeInput = document.getElementById("booking-pass-type") as HTM
 const bookingTicketCountInput = document.getElementById("booking-ticket-count") as HTMLInputElement | null;
 const bookingEmailInput = document.getElementById("booking-email") as HTMLInputElement | null;
 const bookingCancelButton = document.getElementById("booking-cancel") as HTMLButtonElement | null;
+const bookingSubmitButton = document.getElementById("booking-submit") as HTMLButtonElement | null;
 const signupDobInput = document.getElementById("signup-dob") as HTMLInputElement | null;
 
 const users: User[] = [];
@@ -1008,6 +1009,12 @@ bookingForm?.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (bookingSubmitButton) {
+    bookingSubmitButton.disabled = true;
+    bookingSubmitButton.textContent = "Sending payment link...";
+  }
+  showToast("Processing booking and preparing your email...", "info");
+
   try {
     const response = await fetch("/api/bookings", {
       method: "POST",
@@ -1044,6 +1051,11 @@ bookingForm?.addEventListener("submit", async (event) => {
     closeBookingDialog();
   } catch {
     showToast("Booking request failed. Please try again.", "error");
+  } finally {
+    if (bookingSubmitButton) {
+      bookingSubmitButton.disabled = false;
+      bookingSubmitButton.textContent = "Send Payment Link";
+    }
   }
 });
 

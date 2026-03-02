@@ -112,6 +112,16 @@ async function getMailContext(): Promise<MailContext> {
   return mailContext;
 }
 
+async function warmMailContext(): Promise<void> {
+  try {
+    await getMailContext();
+    console.log("[mail] Ethereal mail transport is ready.");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[mail] Failed to initialize mail transport: ${message}`);
+  }
+}
+
 function validateBookingPayload(payload: unknown): BookingPayload | null {
   const candidate = payload as Partial<BookingPayload>;
   if (
@@ -246,4 +256,5 @@ URL         : http://${HOST}:${PORT}
 Started at  : ${new Date().toISOString()}
 --------------------------------------------------
 `);
+  void warmMailContext();
 });
