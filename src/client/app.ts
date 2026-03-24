@@ -693,23 +693,13 @@ function refreshSearchResultsFromCurrentFilters(): void {
   if (!searchCityInput || !searchGenreInput) return;
   const city = searchCityInput.value;
   const genre = searchGenreInput.value;
+  const filteredEvents = getSearchableEvents().filter((eventItem) => {
+    const matchesCity = !city || eventItem.city === city;
+    const matchesGenre = !genre || eventItem.genre === genre;
+    return matchesCity && matchesGenre;
+  });
 
-  if (!city || !genre) {
-    renderSearchResults(getSearchableEvents());
-    return;
-  }
-
-  const filteredEvents = getSearchableEvents().filter(
-    (eventItem) => eventItem.city === city && eventItem.genre === genre
-  );
   renderSearchResults(filteredEvents);
-}
-
-function hydrateSearchFilters(): void {
-  if (!searchCityInput || !searchGenreInput) return;
-  const filters = loadSearchFiltersFromStorage();
-  searchCityInput.value = filters.city;
-  searchGenreInput.value = filters.genre;
 }
 
 function resetSearchState(): void {
@@ -965,17 +955,8 @@ searchForm?.addEventListener("submit", (event) => {
   const city = searchCityInput.value;
   const genre = searchGenreInput.value;
 
-  if (!city || !genre) {
-    alert("Please select both city and genre before searching.");
-    return;
-  }
   persistSearchFilters({ city, genre });
-
-  const filteredEvents = getSearchableEvents().filter(
-    (eventItem) => eventItem.city === city && eventItem.genre === genre
-  );
-
-  renderSearchResults(filteredEvents);
+  refreshSearchResultsFromCurrentFilters();
 });
 
 bookingForm?.addEventListener("submit", async (event) => {
@@ -1139,7 +1120,8 @@ logoutButton?.addEventListener("click", () => {
 users.push(...loadUsersFromStorage());
 events.push(...loadEventsFromStorage());
 currentUser = loadCurrentUserFromStorage();
-hydrateSearchFilters();
+clearSearchFilters();
+resetSearchState();
 
 if (currentUser) {
   showDashboard(false);
