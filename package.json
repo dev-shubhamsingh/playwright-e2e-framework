@@ -12,11 +12,17 @@
     "dev": "npm run build:client && sh -c 'npm run dev:client:watch & npm run dev:server'",
     "dev:server": "node --env-file=.env -r ts-node/register src/server/index.ts",
     "dev:client:watch": "tsc -p tsconfig.client.json --watch --preserveWatchOutput",
-    "typecheck": "npm run typecheck:server && npm run typecheck:client",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
+    "typecheck": "npm run typecheck:server && npm run typecheck:client && npm run typecheck:e2e",
+    "typecheck:e2e": "tsc -p tsconfig.playwright.json --noEmit",
     "typecheck:server": "tsc -p tsconfig.json --noEmit",
     "typecheck:client": "tsc -p tsconfig.client.json --noEmit"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/node": "^24.11.0",
     "@types/nodemailer": "^7.0.11",
     "ts-node": "^10.9.2",

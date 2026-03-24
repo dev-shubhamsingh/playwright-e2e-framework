@@ -56,6 +56,11 @@ npm run dev
 - `npm run build:client` - Build client TypeScript and copy client assets
 - `npm start` - Run built server using `.env`
 - `npm run dev` - Development workflow
+- `npm run test:e2e` - Run Playwright end-to-end tests
+- `npm run test:e2e:headed` - Run Playwright tests in headed mode
+- `npm run test:e2e:ui` - Open the Playwright UI runner
+- `npm run test:e2e:report` - Open the latest Playwright HTML report
+- `npm run typecheck:e2e` - Type-check Playwright config, fixtures, and page objects
 - `npm run typecheck` - Type-check server and client
 
 ## Project Structure
@@ -72,6 +77,13 @@ src/
 dist/
   server/
   client/
+
+tests/
+  data/
+  e2e/
+  fixtures/
+  pages/
+  utils/
 ```
 
 ## Notes
@@ -79,3 +91,16 @@ dist/
 - `.env` is ignored from version control.
 - Use `.env.example` as the template for local setup.
 - This project is intentionally simple and focused on complete user flows.
+
+## Playwright
+
+The Playwright framework is scaffolded with:
+
+- `playwright.config.ts` for runner configuration and local web server startup
+- `tests/pages/` for page objects
+- `tests/fixtures/` for shared fixtures
+- `tests/data/` for test factories and static data
+- `tests/utils/` for reusable helpers
+- `tests/e2e/` for specs when we start adding tests
+
+If `PLAYWRIGHT_BASE_URL` is not set, Playwright will boot the local app automatically before test execution.
