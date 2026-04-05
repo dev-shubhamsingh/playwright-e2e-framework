@@ -1,7 +1,8 @@
 import type { Page } from "@playwright/test";
+import { createOwnedEvent, type EventInput } from "../../data/event.factory";
 import { createSignupUser, type SignupUser } from "../../data/user.factory";
 import { TestSessionApi } from "../api/test-session.api";
-import type { TestSessionOptions } from "../types/app-state";
+import type { AppEvent, TestSessionOptions } from "../types/app-state";
 
 export class AppCommand {
   constructor(
@@ -15,6 +16,10 @@ export class AppCommand {
 
   async createUser(overrides: Partial<SignupUser> = {}): Promise<SignupUser> {
     return createSignupUser(overrides);
+  }
+
+  createOwnedEvent(ownerEmail: string, overrides: Partial<EventInput> = {}): AppEvent {
+    return createOwnedEvent(ownerEmail, overrides);
   }
 
   async seedSession(options: TestSessionOptions = {}): Promise<void> {

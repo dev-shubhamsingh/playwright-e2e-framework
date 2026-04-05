@@ -323,42 +323,52 @@ const server = http.createServer(async (req, res) => {
 
       const bookingId = `BK-${Date.now()}`;
       const paymentLink = `https://payments.bliss.test/checkout/${bookingId}`;
-      const { transporter, accountUser } = await getMailContext();
+      let previewUrl: string | false = false;
+      let mailAccount: string | null = null;
 
-      const mailInfo = await transporter.sendMail({
-        from: '"Bliss Tickets" <no-reply@bliss.test>',
-        to: payload.buyerEmail,
-        subject: `Bliss Booking Created: ${payload.eventName}`,
-        text:
-          `Hi,\n\n` +
-          `Your booking is created for ${payload.eventName}.\n` +
-          `City: ${payload.eventCity}\n` +
-          `Venue: ${payload.eventVenue}\n` +
-          `Date: ${payload.eventDate}\n` +
-          `Pass: ${payload.passType}\n` +
-          `Tickets: ${payload.ticketCount}\n\n` +
-          `Complete payment: ${paymentLink}\n\n` +
-          `Booking ID: ${bookingId}\n`,
-        html:
-          `<p>Your booking is created for <strong>${payload.eventName}</strong>.</p>` +
-          `<ul>` +
-          `<li>City: ${payload.eventCity}</li>` +
-          `<li>Venue: ${payload.eventVenue}</li>` +
-          `<li>Date: ${payload.eventDate}</li>` +
-          `<li>Pass: ${payload.passType}</li>` +
-          `<li>Tickets: ${payload.ticketCount}</li>` +
-          `</ul>` +
-          `<p><a href="${paymentLink}">Complete payment</a></p>` +
-          `<p>Booking ID: <strong>${bookingId}</strong></p>`
-      });
+      try {
+        const { transporter, accountUser } = await getMailContext();
+        mailAccount = accountUser;
 
-      const previewUrl = nodemailer.getTestMessageUrl(mailInfo);
+        const mailInfo = await transporter.sendMail({
+          from: '"Bliss Tickets" <no-reply@bliss.test>',
+          to: payload.buyerEmail,
+          subject: `Bliss Booking Created: ${payload.eventName}`,
+          text:
+            `Hi,\n\n` +
+            `Your booking is created for ${payload.eventName}.\n` +
+            `City: ${payload.eventCity}\n` +
+            `Venue: ${payload.eventVenue}\n` +
+            `Date: ${payload.eventDate}\n` +
+            `Pass: ${payload.passType}\n` +
+            `Tickets: ${payload.ticketCount}\n\n` +
+            `Complete payment: ${paymentLink}\n\n` +
+            `Booking ID: ${bookingId}\n`,
+          html:
+            `<p>Your booking is created for <strong>${payload.eventName}</strong>.</p>` +
+            `<ul>` +
+            `<li>City: ${payload.eventCity}</li>` +
+            `<li>Venue: ${payload.eventVenue}</li>` +
+            `<li>Date: ${payload.eventDate}</li>` +
+            `<li>Pass: ${payload.passType}</li>` +
+            `<li>Tickets: ${payload.ticketCount}</li>` +
+            `</ul>` +
+            `<p><a href="${paymentLink}">Complete payment</a></p>` +
+            `<p>Booking ID: <strong>${bookingId}</strong></p>`
+        });
+
+        previewUrl = nodemailer.getTestMessageUrl(mailInfo);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown mail error";
+        console.warn(`[mail] Booking email preview unavailable: ${message}`);
+      }
+
       sendJson(res, 201, {
         ok: true,
         bookingId,
         paymentLink,
         previewUrl,
-        mailAccount: accountUser
+        mailAccount
       });
       return;
     } catch (error) {

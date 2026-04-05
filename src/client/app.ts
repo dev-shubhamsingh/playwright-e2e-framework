@@ -143,6 +143,13 @@ let dobCurrentYear = 0;
 let eventCurrentMonth = 0;
 let eventCurrentYear = 0;
 
+function toTestId(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function loadUsersFromStorage(): User[] {
   const raw = localStorage.getItem(STORAGE_KEYS.users);
   if (!raw) return [];
@@ -569,7 +576,9 @@ function renderEvents(): void {
 
   sortEventsByDate(getCurrentUserEvents()).forEach((eventItem, index) => {
     const li = document.createElement("li");
+    li.setAttribute("data-test", `published-event-${eventItem.id}`);
     const text = document.createElement("span");
+    text.setAttribute("data-test", `published-event-summary-${eventItem.id}`);
     text.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
 
     const deleteButton = document.createElement("button");
@@ -612,6 +621,7 @@ function showBookingStatus(message: string, links?: Array<{ label: string; href:
     anchor.target = "_blank";
     anchor.rel = "noreferrer noopener";
     anchor.textContent = link.label;
+    anchor.setAttribute("data-test", `booking-status-link-${index + 1}`);
     bookingStatus.appendChild(anchor);
   });
 }
@@ -666,15 +676,18 @@ function renderSearchResults(results: SeedEvent[]): void {
   }
 
   sortEventsByDate(results).forEach((eventItem, index) => {
+    const resultKey = `${toTestId(eventItem.name)}-${eventItem.date}`;
     const li = document.createElement("li");
+    li.setAttribute("data-test", `search-result-${resultKey}`);
     const text = document.createElement("span");
     text.className = "search-result-text";
+    text.setAttribute("data-test", `search-result-summary-${resultKey}`);
     text.textContent = `${index + 1}. ${eventItem.name} | ${eventItem.city.toUpperCase()} | ${eventItem.genre.toUpperCase()} | ${eventItem.date} | ${eventItem.venue}`;
 
     const bookButton = document.createElement("button");
     bookButton.type = "button";
     bookButton.textContent = "Book Tickets";
-    bookButton.setAttribute("data-test", `book-event-${index}`);
+    bookButton.setAttribute("data-test", `book-event-${resultKey}`);
     bookButton.addEventListener("click", () => {
       if (!currentUser) {
         showToast("Please sign in before booking tickets.", "info");

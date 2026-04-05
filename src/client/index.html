@@ -320,16 +320,23 @@
         <button id="logout-button" type="button" data-test="logout-button">Log Out</button>
       </section>
 
-      <section id="create-event-view" class="card" hidden>
+      <section id="create-event-view" class="card" data-test="create-event-view" hidden>
         <h2>Create Event</h2>
         <p>Publish a new event to your dashboard and search results.</p>
 
-        <form id="event-form">
+        <form id="event-form" data-test="create-event-form">
           <label for="event-name">Event Name</label>
-          <input id="event-name" name="eventName" type="text" placeholder="Neon Pulse Night" required />
+          <input
+            id="event-name"
+            name="eventName"
+            type="text"
+            placeholder="Neon Pulse Night"
+            data-test="event-name-input"
+            required
+          />
 
           <label for="event-city">City</label>
-          <select id="event-city" name="eventCity" required>
+          <select id="event-city" name="eventCity" data-test="event-city-select" required>
             <option value="">Select city</option>
             <option value="mumbai">Mumbai</option>
             <option value="delhi">Delhi</option>
@@ -338,7 +345,7 @@
           </select>
 
           <label for="event-genre">Genre</label>
-          <select id="event-genre" name="eventGenre" required>
+          <select id="event-genre" name="eventGenre" data-test="event-genre-select" required>
             <option value="">Select genre</option>
             <option value="edm">EDM</option>
             <option value="techno">Techno</option>
@@ -355,15 +362,30 @@
               type="text"
               placeholder="YYYY-MM-DD"
               autocomplete="off"
+              data-test="event-date-input"
               readonly
               required
             />
           </div>
-          <div id="event-calendar" class="calendar-popover" hidden>
+          <div id="event-calendar" class="calendar-popover" data-test="event-calendar" hidden>
             <div class="calendar-header">
-              <button id="event-prev-month" type="button" aria-label="Previous month">&#8249;</button>
-              <strong id="event-month-label">Month Year</strong>
-              <button id="event-next-month" type="button" aria-label="Next month">&#8250;</button>
+              <button
+                id="event-prev-month"
+                type="button"
+                aria-label="Previous month"
+                data-test="event-prev-month-button"
+              >
+                &#8249;
+              </button>
+              <strong id="event-month-label" data-test="event-month-label">Month Year</strong>
+              <button
+                id="event-next-month"
+                type="button"
+                aria-label="Next month"
+                data-test="event-next-month-button"
+              >
+                &#8250;
+              </button>
             </div>
             <div class="calendar-weekdays" aria-hidden="true">
               <span>Su</span>
@@ -374,36 +396,70 @@
               <span>Fr</span>
               <span>Sa</span>
             </div>
-            <div id="event-days-grid" class="calendar-days" role="grid" aria-label="Event date calendar"></div>
+            <div
+              id="event-days-grid"
+              class="calendar-days"
+              role="grid"
+              aria-label="Event date calendar"
+              data-test="event-days-grid"
+            ></div>
           </div>
 
           <label for="event-venue">Venue</label>
-          <input id="event-venue" name="eventVenue" type="text" placeholder="Dockyard Arena" required />
+          <input
+            id="event-venue"
+            name="eventVenue"
+            type="text"
+            placeholder="Dockyard Arena"
+            data-test="event-venue-input"
+            required
+          />
 
-          <button type="submit">Publish Event</button>
+          <button type="submit" data-test="publish-event-submit-button">Publish Event</button>
         </form>
 
-        <button id="back-to-dashboard" type="button">Back to Dashboard</button>
+        <button id="back-to-dashboard" type="button" data-test="back-to-dashboard-button">Back to Dashboard</button>
       </section>
 
-      <dialog id="booking-dialog" class="booking-dialog">
-        <form id="booking-form" method="dialog">
+      <dialog id="booking-dialog" class="booking-dialog" data-test="booking-dialog">
+        <form id="booking-form" method="dialog" data-test="booking-form">
           <h3>Book Tickets</h3>
 
           <label for="booking-event-name">Event</label>
-          <input id="booking-event-name" name="eventName" type="text" readonly required />
+          <input
+            id="booking-event-name"
+            name="eventName"
+            type="text"
+            data-test="booking-event-name-input"
+            readonly
+            required
+          />
 
           <label for="booking-event-date">Date</label>
-          <input id="booking-event-date" name="eventDate" type="text" readonly required />
+          <input
+            id="booking-event-date"
+            name="eventDate"
+            type="text"
+            data-test="booking-event-date-input"
+            readonly
+            required
+          />
 
           <label for="booking-event-venue">Venue</label>
-          <input id="booking-event-venue" name="eventVenue" type="text" readonly required />
+          <input
+            id="booking-event-venue"
+            name="eventVenue"
+            type="text"
+            data-test="booking-event-venue-input"
+            readonly
+            required
+          />
 
-          <input id="booking-event-city" name="eventCity" type="hidden" />
-          <input id="booking-event-genre" name="eventGenre" type="hidden" />
+          <input id="booking-event-city" name="eventCity" type="hidden" data-test="booking-event-city-input" />
+          <input id="booking-event-genre" name="eventGenre" type="hidden" data-test="booking-event-genre-input" />
 
           <label for="booking-pass-type">Pass Type</label>
-          <select id="booking-pass-type" name="passType" required>
+          <select id="booking-pass-type" name="passType" data-test="booking-pass-type-select" required>
             <option value="">Select pass</option>
             <option value="general">General Admission</option>
             <option value="fan-pit">Fan Pit</option>
@@ -420,15 +476,23 @@
             max="10"
             step="1"
             value="1"
+            data-test="booking-ticket-count-input"
             required
           />
 
           <label for="booking-email">Booking Email</label>
-          <input id="booking-email" name="buyerEmail" type="email" placeholder="you@example.com" required />
+          <input
+            id="booking-email"
+            name="buyerEmail"
+            type="email"
+            placeholder="you@example.com"
+            data-test="booking-email-input"
+            required
+          />
 
           <div class="booking-actions">
-            <button id="booking-cancel" type="button">Cancel</button>
-            <button id="booking-submit" type="submit">Send Payment Link</button>
+            <button id="booking-cancel" type="button" data-test="booking-cancel-button">Cancel</button>
+            <button id="booking-submit" type="submit" data-test="booking-submit-button">Send Payment Link</button>
           </div>
         </form>
       </dialog>
