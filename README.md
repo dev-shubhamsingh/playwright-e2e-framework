@@ -102,5 +102,6 @@ The Playwright framework is scaffolded with:
 - `tests/data/` for test factories and static data
 - `tests/utils/` for reusable helpers
 - `tests/e2e/` for specs when we start adding tests
+- `docs/automated-testing-knowledge-base-playwright.md` for project testing standards and best practices
 
 If `PLAYWRIGHT_BASE_URL` is not set, Playwright will boot the local app automatically before test execution.
