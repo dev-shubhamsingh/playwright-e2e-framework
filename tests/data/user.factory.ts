@@ -11,7 +11,7 @@ export type SignupUser = {
   bio: string;
 };
 
-export function createSignupUser(): SignupUser {
+export function createSignupUser(overrides: Partial<SignupUser> = {}): SignupUser {
   const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 100_000)}`;
 
   return {
@@ -24,6 +24,7 @@ export function createSignupUser(): SignupUser {
     interest: "discover_events",
     notifications: ["email"],
     genres: ["techno", "house"],
-    bio: "Seed user for Playwright E2E flows."
+    bio: "Seed user for Playwright E2E flows.",
+    ...overrides
   };
 }

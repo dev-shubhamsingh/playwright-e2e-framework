@@ -35,6 +35,41 @@ type BookingPayload = {
   buyerEmail: string;
 };
 
+type TestUser = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  dob: string;
+  city: string;
+  interest: string;
+  notifications: string[];
+  genres: string[];
+  bio: string;
+};
+
+type TestEvent = {
+  id: string;
+  name: string;
+  city: string;
+  genre: string;
+  date: string;
+  venue: string;
+  owner: string;
+};
+
+type TestSearchFilters = {
+  city: string;
+  genre: string;
+};
+
+type TestSessionPayload = {
+  users?: TestUser[];
+  events?: TestEvent[];
+  currentUserEmail?: string | null;
+  searchFilters?: Partial<TestSearchFilters> | null;
+};
+
 type MailContext = {
   transporter: Transporter;
   accountUser: string;
@@ -149,7 +184,126 @@ function validateBookingPayload(payload: unknown): BookingPayload | null {
   };
 }
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function normalizeTestUser(candidate: unknown): TestUser | null {
+  const value = candidate as Partial<TestUser>;
+  if (
+    typeof value?.name !== "string" ||
+    typeof value?.email !== "string" ||
+    typeof value?.password !== "string" ||
+    typeof value?.phone !== "string" ||
+    typeof value?.dob !== "string" ||
+    typeof value?.city !== "string" ||
+    typeof value?.interest !== "string" ||
+    !isStringArray(value?.notifications) ||
+    !isStringArray(value?.genres) ||
+    typeof value?.bio !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    name: value.name.trim(),
+    email: value.email.trim().toLowerCase(),
+    password: value.password,
+    phone: value.phone.trim(),
+    dob: value.dob.trim(),
+    city: value.city.trim(),
+    interest: value.interest.trim(),
+    notifications: value.notifications,
+    genres: value.genres,
+    bio: value.bio.trim()
+  };
+}
+
+function normalizeTestEvent(candidate: unknown): TestEvent | null {
+  const value = candidate as Partial<TestEvent>;
+  if (
+    typeof value?.id !== "string" ||
+    typeof value?.name !== "string" ||
+    typeof value?.city !== "string" ||
+    typeof value?.genre !== "string" ||
+    typeof value?.date !== "string" ||
+    typeof value?.venue !== "string" ||
+    typeof value?.owner !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: value.id.trim(),
+    name: value.name.trim(),
+    city: value.city.trim(),
+    genre: value.genre.trim(),
+    date: value.date.trim(),
+    venue: value.venue.trim(),
+    owner: value.owner.trim().toLowerCase()
+  };
+}
+
+function createTestSessionStorage(payload: unknown): Record<string, string> | null {
+  const candidate = payload as TestSessionPayload;
+  const users = Array.isArray(candidate?.users)
+    ? candidate.users.map(normalizeTestUser)
+    : [];
+  const events = Array.isArray(candidate?.events)
+    ? candidate.events.map(normalizeTestEvent)
+    : [];
+
+  if (users.some((user) => !user) || events.some((eventItem) => !eventItem)) {
+    return null;
+  }
+
+  const currentUserEmail =
+    candidate?.currentUserEmail === null || candidate?.currentUserEmail === undefined
+      ? null
+      : String(candidate.currentUserEmail).trim().toLowerCase();
+  const currentUser = currentUserEmail
+    ? users.find((user) => user?.email === currentUserEmail) ?? null
+    : null;
+  const searchFilters: TestSearchFilters = {
+    city: typeof candidate?.searchFilters?.city === "string" ? candidate.searchFilters.city : "",
+    genre:
+      typeof candidate?.searchFilters?.genre === "string" ? candidate.searchFilters.genre : ""
+  };
+
+  const storage: Record<string, string> = {
+    bliss_users: JSON.stringify(users),
+    bliss_events: JSON.stringify(events),
+    bliss_search_filters: JSON.stringify(searchFilters)
+  };
+
+  if (currentUser) {
+    storage.bliss_current_user = JSON.stringify({
+      name: currentUser.name,
+      email: currentUser.email
+    });
+  }
+
+  return storage;
+}
+
 const server = http.createServer(async (req, res) => {
+  if (req.method === "POST" && req.url === "/api/test/session") {
+    try {
+      const storage = createTestSessionStorage(await readJsonBody(req));
+      if (!storage) {
+        sendJson(res, 400, { ok: false, error: "Invalid test session payload." });
+        return;
+      }
+
+      sendJson(res, 200, { ok: true, storage });
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to create test session.";
+      sendJson(res, 500, { ok: false, error: message });
+      return;
+    }
+  }
+
   if (req.method === "POST" && req.url === "/api/bookings") {
     try {
       const payload = validateBookingPayload(await readJsonBody(req));

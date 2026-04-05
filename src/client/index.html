@@ -16,39 +16,81 @@
     </header>
 
     <main class="app">
-      <section id="login-view" class="card auth-view">
+      <section id="login-view" class="card auth-view" data-test="login-view">
         <h1>Where Events Become Experiences</h1>
         <p id="description">
           From headline concerts to underground raves, Bliss helps you discover events, manage your bookings, and run your own shows from one smart dashboard.
         </p>
         <h2>Sign In</h2>
-        <form id="login-form">
+        <form id="login-form" data-test="login-form">
           <label for="login-email">Email</label>
-          <input id="login-email" name="email" type="email" placeholder="you@example.com" required />
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            data-test="login-email-input"
+            required
+          />
 
           <label for="login-password">Password</label>
-          <input id="login-password" name="password" type="password" placeholder="Enter password" required />
+          <input
+            id="login-password"
+            name="password"
+            type="password"
+            placeholder="Enter password"
+            data-test="login-password-input"
+            required
+          />
 
-          <button type="submit">Sign In</button>
+          <button type="submit" data-test="login-submit-button">Sign In</button>
         </form>
         <p class="switch-text">
           New to Bliss?
-          <button id="go-to-signup" class="link-button" type="button">Create an account</button>
+          <button
+            id="go-to-signup"
+            class="link-button"
+            type="button"
+            data-test="go-to-signup-button"
+          >
+            Create an account
+          </button>
         </p>
       </section>
 
-      <section id="signup-view" class="card auth-view" hidden>
+      <section id="signup-view" class="card auth-view" data-test="signup-view" hidden>
         <h1>Create Your Bliss Account</h1>
         <p class="subtitle">Set up your profile to unlock your event dashboard.</p>
-        <form id="signup-form">
+        <form id="signup-form" data-test="signup-form">
           <label for="signup-name">Full Name</label>
-          <input id="signup-name" name="name" type="text" placeholder="Your full name" required />
+          <input
+            id="signup-name"
+            name="name"
+            type="text"
+            placeholder="Your full name"
+            data-test="signup-name-input"
+            required
+          />
 
           <label for="signup-email">Email</label>
-          <input id="signup-email" name="email" type="email" placeholder="you@example.com" required />
+          <input
+            id="signup-email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            data-test="signup-email-input"
+            required
+          />
 
           <label for="signup-phone">Phone Number</label>
-          <input id="signup-phone" name="phone" type="tel" placeholder="+91 98765 43210" required />
+          <input
+            id="signup-phone"
+            name="phone"
+            type="tel"
+            placeholder="+91 98765 43210"
+            data-test="signup-phone-input"
+            required
+          />
 
           <label for="signup-dob">Date of Birth</label>
           <div class="date-picker">
@@ -58,15 +100,30 @@
               type="text"
               placeholder="YYYY-MM-DD"
               autocomplete="off"
+              data-test="signup-dob-input"
               readonly
               required
             />
           </div>
-          <div id="dob-calendar" class="calendar-popover" hidden>
+          <div id="dob-calendar" class="calendar-popover" data-test="signup-dob-calendar" hidden>
             <div class="calendar-header">
-              <button id="dob-prev-month" type="button" aria-label="Previous month">&#8249;</button>
-              <strong id="dob-month-label">Month Year</strong>
-              <button id="dob-next-month" type="button" aria-label="Next month">&#8250;</button>
+              <button
+                id="dob-prev-month"
+                type="button"
+                aria-label="Previous month"
+                data-test="signup-dob-prev-month-button"
+              >
+                &#8249;
+              </button>
+              <strong id="dob-month-label" data-test="signup-dob-month-label">Month Year</strong>
+              <button
+                id="dob-next-month"
+                type="button"
+                aria-label="Next month"
+                data-test="signup-dob-next-month-button"
+              >
+                &#8250;
+              </button>
             </div>
             <div class="calendar-weekdays" aria-hidden="true">
               <span>Su</span>
@@ -77,11 +134,17 @@
               <span>Fr</span>
               <span>Sa</span>
             </div>
-            <div id="dob-days-grid" class="calendar-days" role="grid" aria-label="Date of birth calendar"></div>
+            <div
+              id="dob-days-grid"
+              class="calendar-days"
+              role="grid"
+              aria-label="Date of birth calendar"
+              data-test="signup-dob-days-grid"
+            ></div>
           </div>
 
           <label for="signup-city">City</label>
-          <select id="signup-city" name="city" required>
+          <select id="signup-city" name="city" data-test="signup-city-select" required>
             <option value="">Select your city</option>
             <option value="mumbai">Mumbai</option>
             <option value="delhi">Delhi</option>
@@ -90,44 +153,80 @@
             <option value="other">Other</option>
           </select>
 
-          <fieldset>
+          <fieldset data-test="signup-interest-fieldset">
             <legend>What Brings You To Bliss?</legend>
             <label>
-              <input type="radio" name="interest" value="discover_events" required />
+              <input
+                type="radio"
+                name="interest"
+                value="discover_events"
+                data-test="signup-interest-discover-events"
+                required
+              />
               Discover events near me
             </label>
             <label>
-              <input type="radio" name="interest" value="follow_artists" />
+              <input
+                type="radio"
+                name="interest"
+                value="follow_artists"
+                data-test="signup-interest-follow-artists"
+              />
               Follow artists and lineups
             </label>
             <label>
-              <input type="radio" name="interest" value="host_events" />
+              <input
+                type="radio"
+                name="interest"
+                value="host_events"
+                data-test="signup-interest-host-events"
+              />
               Host and promote events
             </label>
             <label>
-              <input type="radio" name="interest" value="festival_updates" />
+              <input
+                type="radio"
+                name="interest"
+                value="festival_updates"
+                data-test="signup-interest-festival-updates"
+              />
               Festival and rave updates
             </label>
           </fieldset>
 
-          <fieldset>
+          <fieldset data-test="signup-notifications-fieldset">
             <legend>Notification Preferences</legend>
             <label>
-              <input type="checkbox" name="notifications" value="email" />
+              <input
+                type="checkbox"
+                name="notifications"
+                value="email"
+                data-test="signup-notification-email"
+              />
               Email updates
             </label>
             <label>
-              <input type="checkbox" name="notifications" value="sms" />
+              <input
+                type="checkbox"
+                name="notifications"
+                value="sms"
+                data-test="signup-notification-sms"
+              />
               SMS alerts
             </label>
             <label>
-              <input type="checkbox" name="notifications" value="whatsapp" />
+              <input
+                type="checkbox"
+                name="notifications"
+                value="whatsapp"
+                data-test="signup-notification-whatsapp"
+              />
               WhatsApp alerts
             </label>
           </fieldset>
 
           <label for="signup-fav-genres">Favorite Genres</label>
-          <select id="signup-fav-genres" name="genres" multiple size="4">
+          <select id="signup-fav-genres" name="genres" multiple size="4" data-test="signup-genres-select">
             <option value="edm">EDM</option>
             <option value="techno">Techno</option>
             <option value="house">House</option>
@@ -148,34 +247,49 @@
             rows="4"
             maxlength="300"
             placeholder="I love weekend techno raves and open-air music festivals."
+            data-test="signup-bio-input"
           ></textarea>
 
           <label for="signup-password">Password</label>
-          <input id="signup-password" name="password" type="password" placeholder="Create password" required />
+          <input
+            id="signup-password"
+            name="password"
+            type="password"
+            placeholder="Create password"
+            data-test="signup-password-input"
+            required
+          />
 
           <label>
-            <input id="signup-terms" name="terms" type="checkbox" required />
+            <input id="signup-terms" name="terms" type="checkbox" data-test="signup-terms-checkbox" required />
             I agree to the Terms and Privacy Policy
           </label>
 
-          <button type="submit">Create Account</button>
+          <button type="submit" data-test="signup-submit-button">Create Account</button>
         </form>
         <p class="switch-text">
           Already have an account?
-          <button id="go-to-login" class="link-button" type="button">Back to sign in</button>
+          <button
+            id="go-to-login"
+            class="link-button"
+            type="button"
+            data-test="go-to-login-button"
+          >
+            Back to sign in
+          </button>
         </p>
       </section>
 
-      <section id="dashboard-view" class="card" hidden>
+      <section id="dashboard-view" class="card" data-test="dashboard-view" hidden>
         <h2>Event Dashboard</h2>
         <p>Search upcoming events and review your published events.</p>
 
-        <button id="go-to-create-event" type="button">Publish New Event</button>
+        <button id="go-to-create-event" type="button" data-test="go-to-create-event-button">Publish New Event</button>
 
         <h3>Discover Events</h3>
-        <form id="search-form">
+        <form id="search-form" data-test="search-form">
           <label for="search-city">City</label>
-          <select id="search-city" name="city">
+          <select id="search-city" name="city" data-test="search-city-select">
             <option value="">Select city</option>
             <option value="mumbai">Mumbai</option>
             <option value="delhi">Delhi</option>
@@ -184,7 +298,7 @@
           </select>
 
           <label for="search-genre">Genre</label>
-          <select id="search-genre" name="genre">
+          <select id="search-genre" name="genre" data-test="search-genre-select">
             <option value="">Select genre</option>
             <option value="edm">EDM</option>
             <option value="techno">Techno</option>
@@ -193,17 +307,17 @@
             <option value="rock">Rock</option>
           </select>
 
-          <button type="submit">Find Events</button>
+          <button type="submit" data-test="search-submit-button">Find Events</button>
         </form>
 
         <h3>Search Results</h3>
-        <ul id="search-results" aria-live="polite"></ul>
-        <p id="booking-status" class="booking-status" hidden></p>
+        <ul id="search-results" aria-live="polite" data-test="search-results-list"></ul>
+        <p id="booking-status" class="booking-status" data-test="booking-status" hidden></p>
 
         <h3>Published Events</h3>
-        <ul id="event-list" aria-live="polite"></ul>
+        <ul id="event-list" aria-live="polite" data-test="published-events-list"></ul>
 
-        <button id="logout-button" type="button">Log Out</button>
+        <button id="logout-button" type="button" data-test="logout-button">Log Out</button>
       </section>
 
       <section id="create-event-view" class="card" hidden>

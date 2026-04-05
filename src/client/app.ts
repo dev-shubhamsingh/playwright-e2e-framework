@@ -255,6 +255,7 @@ function showToast(message: string, type: ToastType = "info"): void {
 
   const toast = document.createElement("div");
   toast.id = "app-toast";
+  toast.setAttribute("data-test", "app-toast");
   toast.setAttribute("role", "status");
   toast.setAttribute("aria-live", "polite");
   toast.textContent = message;
@@ -449,6 +450,7 @@ function renderDobCalendar(): void {
     button.type = "button";
     button.className = "calendar-day";
     button.textContent = String(day);
+    button.setAttribute("data-test", `signup-dob-day-${formatDateIso(date)}`);
 
     const isAllowed = isDateWithinRange(date, minDate, maxDate);
     button.disabled = !isAllowed;
@@ -516,6 +518,7 @@ function renderEventCalendar(): void {
     button.type = "button";
     button.className = "calendar-day";
     button.textContent = String(day);
+    button.setAttribute("data-test", `event-day-${formatDateIso(date)}`);
 
     const isAllowed = isDateWithinRange(date, minDate, maxDate);
     button.disabled = !isAllowed;
@@ -572,6 +575,7 @@ function renderEvents(): void {
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
     deleteButton.textContent = "Delete";
+    deleteButton.setAttribute("data-test", `published-event-delete-${eventItem.id}`);
     deleteButton.addEventListener("click", () => {
       const targetIndex = events.findIndex((item) => item.id === eventItem.id);
       if (targetIndex < 0) return;
@@ -670,6 +674,7 @@ function renderSearchResults(results: SeedEvent[]): void {
     const bookButton = document.createElement("button");
     bookButton.type = "button";
     bookButton.textContent = "Book Tickets";
+    bookButton.setAttribute("data-test", `book-event-${index}`);
     bookButton.addEventListener("click", () => {
       if (!currentUser) {
         showToast("Please sign in before booking tickets.", "info");
