@@ -1,5 +1,6 @@
 import { test as setup } from '@playwright/test';
 import { LoginPage } from '@saucedemo/pages/LoginPage';
+import { env } from '@core/config/env';
 import path from 'path';
 
 /**
@@ -23,10 +24,7 @@ setup('authenticate as standard_user', async ({ page }) => {
   const loginPage = new LoginPage(page);
 
   await loginPage.goto();
-  await loginPage.login(
-    process.env.TEST_USER ?? 'standard_user',
-    process.env.TEST_PASSWORD ?? 'secret_sauce',
-  );
+  await loginPage.login(env.TEST_USER, env.TEST_PASSWORD);
 
   // Confirm we actually reached the inventory page before saving state
   await page.waitForURL('**/inventory.html');

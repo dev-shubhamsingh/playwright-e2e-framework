@@ -11,6 +11,8 @@
     "outDir": "./dist",
     "rootDir": ".",
     "paths": {
+      "@core/*": ["./src/core/*"],
+      "@config/*": ["./src/core/config/*"],
       "@saucedemo/*": ["./src/saucedemo/*"],
       "@dummyjson/*": ["./src/dummyjson/*"],
       "@shared/*": ["./src/shared/*"]

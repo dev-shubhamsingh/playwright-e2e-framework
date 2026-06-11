@@ -1,8 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
-import * as dotenv from 'dotenv';
 import path from 'path';
-
-dotenv.config();
+import { env } from './src/core/config/env';
 
 // Shared path to the saved authenticated session
 const STORAGE_STATE = path.join(process.cwd(), '.auth', 'standard_user.json');
@@ -21,7 +19,7 @@ export default defineConfig({
 
   // Shared settings inherited by all projects
   use: {
-    baseURL: process.env.BASE_URL || 'https://www.saucedemo.com',
+    baseURL: env.BASE_URL,
 
     // SauceDemo uses data-test="..." not data-testid
     testIdAttribute: 'data-test',
@@ -47,7 +45,7 @@ export default defineConfig({
       name: 'api',
       testMatch: '**/dummyjson/api/**/*.spec.ts',
       use: {
-        baseURL: process.env.API_BASE_URL || 'https://dummyjson.com',
+        baseURL: env.API_BASE_URL,
       },
     },
 
