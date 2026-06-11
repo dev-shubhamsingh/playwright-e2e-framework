@@ -12,6 +12,7 @@
     "rootDir": ".",
     "paths": {
       "@saucedemo/*": ["./src/saucedemo/*"],
+      "@dummyjson/*": ["./src/dummyjson/*"],
       "@shared/*": ["./src/shared/*"]
     }
   },

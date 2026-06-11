@@ -40,6 +40,17 @@ export default defineConfig({
       testMatch: '**/auth.setup.ts',
     },
 
+    // ── API: DummyJSON integration tests ──────────────────────────────────
+    // No browser — uses Playwright's request fixture only. Independent baseURL
+    // and no dependency on the UI auth setup.
+    {
+      name: 'api',
+      testMatch: '**/dummyjson/api/**/*.spec.ts',
+      use: {
+        baseURL: process.env.API_BASE_URL || 'https://dummyjson.com',
+      },
+    },
+
     // ── Login tests ───────────────────────────────────────────────────────
     // Clean, unauthenticated browser — tests the login flow itself.
     // Does NOT depend on setup (it must start logged out).
@@ -59,7 +70,7 @@ export default defineConfig({
         storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts'],
+      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
     },
 
     // ── Cross-browser: authenticated only ─────────────────────────────────
@@ -67,13 +78,13 @@ export default defineConfig({
       name: 'firefox',
       use: { ...devices['Desktop Firefox'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts'],
+      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts'],
+      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
     },
 
     // ── Mobile ────────────────────────────────────────────────────────────
@@ -81,13 +92,13 @@ export default defineConfig({
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts'],
+      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
     },
     {
       name: 'mobile-safari',
       use: { ...devices['iPhone 13'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts'],
+      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
     },
   ],
 
