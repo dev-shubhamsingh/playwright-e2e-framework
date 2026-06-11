@@ -22,35 +22,40 @@ re-fetching to confirm persistence, and call this out where relevant.
 ```
 src/dummyjson/
 ├── clients/         # one client class per resource (the API equivalent of a Page Object)
-│   ├── BaseClient.ts
-│   └── AuthClient.ts
+│   ├── AuthClient.ts
+│   └── ProductsClient.ts
 ├── fixtures/        # api.fixture.ts (clients + authenticated request context) + barrel
 ├── schemas/         # zod response contracts (also serve as TypeScript types)
 ├── config.ts        # base URL + seeded user, all env-overridable
 └── README.md
 tests/dummyjson/
 └── api/             # spec files
-    └── auth.spec.ts
+    ├── auth.spec.ts
+    └── products.spec.ts
 ```
 
-Path alias: `@dummyjson/*` → `src/dummyjson/*`.
+Path alias: `@dummyjson/*` → `src/dummyjson/*`. Clients extend the shared
+`@core/http` `ApiClient`.
 
 ## Clients
 
-Each resource gets a client extending `BaseClient`, which holds an injected
-`APIRequestContext`. Clients issue relative requests (the base URL lives on the
-context) and return the raw `APIResponse`, so specs assert on status, headers,
-and body themselves.
+Each resource gets a client extending the shared `@core/http` `ApiClient`, which
+holds an injected `APIRequestContext` and adds cross-cutting behaviour: typed
+`get/post/...` helpers, automatic retry with backoff on transient statuses
+(429/503/...), and request/response capture as a report attachment. Clients
+issue relative requests (the base URL lives on the context) and return the raw
+`APIResponse`, so specs assert on status, headers, and body themselves.
 
 ## Fixtures
 
 Import from `@dummyjson/fixtures`:
 
-| Fixture         | Scope  | Purpose                                                            |
-| --------------- | ------ | ------------------------------------------------------------------ |
-| `authClient`    | test   | Anonymous `AuthClient` for driving `/auth/*` directly.             |
-| `authTokens`    | worker | Logs in once per worker; shares access/refresh tokens.             |
-| `authedRequest` | test   | Request context with `Authorization: Bearer <token>` pre-attached. |
+| Fixture          | Scope  | Purpose                                                            |
+| ---------------- | ------ | ------------------------------------------------------------------ |
+| `authClient`     | test   | Anonymous `AuthClient` for driving `/auth/*` directly.             |
+| `productsClient` | test   | Anonymous `ProductsClient` for the public `/products` endpoints.   |
+| `authTokens`     | worker | Logs in once per worker; shares access/refresh tokens.             |
+| `authedRequest`  | test   | Request context with `Authorization: Bearer <token>` pre-attached. |
 
 The login response is validated against its schema inside the `authTokens`
 fixture, so a broken auth contract fails fast before dependent tests run.
@@ -86,9 +91,10 @@ npx playwright test tests/dummyjson/api/auth.spec.ts
 
 ## Coverage
 
-| Area | Scenarios                                                                                          |
-| ---- | -------------------------------------------------------------------------------------------------- |
-| Auth | login happy path, invalid credentials (400), `/auth/me` with token, `/auth/me` without token (401) |
+| Area     | Scenarios                                                                                          |
+| -------- | -------------------------------------------------------------------------------------------------- |
+| Auth     | login happy path, invalid credentials (400), `/auth/me` with token, `/auth/me` without token (401) |
+| Products | list envelope, pagination (limit/skip), search, sort, field select, single by id, 404 not-found    |
 
 ```
 
