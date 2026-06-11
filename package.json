@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "test": "playwright test",
+    "test:api": "playwright test --project=api",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
@@ -23,6 +24,7 @@
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.2",
     "dotenv": "^17.4.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "zod": "^4.4.3"
   }
 }
