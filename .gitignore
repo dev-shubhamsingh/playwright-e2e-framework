@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Playwright artifacts
+playwright-report/
+blob-report/
+test-results/
+playwright/.cache/
+
+# Secrets & local config — never commit
+.env
+.env.local
+.auth/
+
+# AI / agent reference docs (local only)
+.ai/
+
+# OS / editor junk
+.DS_Store
+*.log
