@@ -80,7 +80,8 @@ export const INVALID_CREDENTIALS = [
   {
     username: 'invalid_user',
     password: 'secret_sauce',
-    expectedError: 'Username and password do not match any user in this service',
+    expectedError:
+      'Username and password do not match any user in this service',
   },
   {
     username: '',

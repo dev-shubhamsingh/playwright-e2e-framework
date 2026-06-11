@@ -18,15 +18,15 @@ export class CheckoutOverviewPage {
   private readonly shippingInfo: Locator;
 
   constructor(page: Page) {
-    this.page         = page;
-    this.cartItems    = page.getByTestId('inventory-item');
-    this.itemTotal    = page.getByTestId('subtotal-label');
-    this.taxAmount    = page.getByTestId('tax-label');
-    this.orderTotal   = page.getByTestId('total-label');
+    this.page = page;
+    this.cartItems = page.getByTestId('inventory-item');
+    this.itemTotal = page.getByTestId('subtotal-label');
+    this.taxAmount = page.getByTestId('tax-label');
+    this.orderTotal = page.getByTestId('total-label');
     this.finishButton = page.getByTestId('finish');
     this.cancelButton = page.getByTestId('cancel');
-    this.pageTitle    = page.getByTestId('title');
-    this.paymentInfo  = page.getByTestId('payment-info-value');
+    this.pageTitle = page.getByTestId('title');
+    this.paymentInfo = page.getByTestId('payment-info-value');
     this.shippingInfo = page.getByTestId('shipping-info-value');
   }
 

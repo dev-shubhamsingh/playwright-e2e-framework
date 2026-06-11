@@ -53,6 +53,7 @@ Adding a new module later is as simple as creating `src/<module>/` and
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm
 
@@ -121,14 +122,14 @@ Login is expensive to repeat in every test, so it runs **once**:
 
 ## Test Coverage (SauceDemo module)
 
-| Area            | Scenarios |
-|-----------------|-----------|
-| Login           | valid, invalid (data-driven), locked-out, performance-glitch, redirect guard |
-| Inventory       | product display, sorting (4 orders), cart badge, navigation |
-| Product detail  | content, add/remove toggle, back navigation |
-| Cart            | contents, prices, quantities, removal, navigation |
-| Checkout        | happy path, price/tax/total math, form validation, cancel/back |
-| Side menu       | reset app state, all items, logout |
+| Area           | Scenarios                                                                    |
+| -------------- | ---------------------------------------------------------------------------- |
+| Login          | valid, invalid (data-driven), locked-out, performance-glitch, redirect guard |
+| Inventory      | product display, sorting (4 orders), cart badge, navigation                  |
+| Product detail | content, add/remove toggle, back navigation                                  |
+| Cart           | contents, prices, quantities, removal, navigation                            |
+| Checkout       | happy path, price/tax/total math, form validation, cancel/back               |
+| Side menu      | reset app state, all items, logout                                           |
 
 ---
 

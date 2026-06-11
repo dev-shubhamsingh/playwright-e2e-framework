@@ -20,9 +20,7 @@ import { sumPrices, roundTo } from '@shared/utils/helpers';
  *   🔙 Cancel / back     — user can abandon checkout at each step
  */
 test.describe('Checkout', () => {
-
   test.describe('Happy path', () => {
-
     test('completes a full single-item order', async ({
       authenticatedPage,
       cartPage,
@@ -43,22 +41,28 @@ test.describe('Checkout', () => {
         await checkoutInfoPage.fillAndContinue(
           customer.firstName,
           customer.lastName,
-          customer.postalCode
+          customer.postalCode,
         );
       });
 
       await test.step('Verify order overview and place order', async () => {
-        expect(await checkoutOverviewPage.getPageTitle()).toBe('Checkout: Overview');
+        expect(await checkoutOverviewPage.getPageTitle()).toBe(
+          'Checkout: Overview',
+        );
         expect(await checkoutOverviewPage.getItemCount()).toBe(1);
         await checkoutOverviewPage.finish();
       });
 
       await test.step('Verify order confirmation', async () => {
-        expect(await checkoutCompletePage.getPageTitle()).toBe('Checkout: Complete!');
-        expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
-          'Thank you for your order'
+        expect(await checkoutCompletePage.getPageTitle()).toBe(
+          'Checkout: Complete!',
         );
-        expect(await checkoutCompletePage.isConfirmationImageVisible()).toBe(true);
+        expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
+          'Thank you for your order',
+        );
+        expect(await checkoutCompletePage.isConfirmationImageVisible()).toBe(
+          true,
+        );
       });
     });
 
@@ -70,7 +74,11 @@ test.describe('Checkout', () => {
       checkoutCompletePage,
     }) => {
       const customer = TestDataFactory.buildCheckoutInfo();
-      const items = [PRODUCTS.backpack, PRODUCTS.bikeLight, PRODUCTS.fleeceJacket];
+      const items = [
+        PRODUCTS.backpack,
+        PRODUCTS.bikeLight,
+        PRODUCTS.fleeceJacket,
+      ];
 
       for (const item of items) {
         await authenticatedPage.addToCartByName(item.name);
@@ -80,20 +88,18 @@ test.describe('Checkout', () => {
       await checkoutInfoPage.fillAndContinue(
         customer.firstName,
         customer.lastName,
-        customer.postalCode
+        customer.postalCode,
       );
 
       expect(await checkoutOverviewPage.getItemCount()).toBe(items.length);
       await checkoutOverviewPage.finish();
       expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
-        'Thank you for your order'
+        'Thank you for your order',
       );
     });
-
   });
 
   test.describe('Order totals', () => {
-
     test('item total, tax, and grand total are calculated correctly', async ({
       authenticatedPage,
       cartPage,
@@ -114,11 +120,13 @@ test.describe('Checkout', () => {
       await checkoutInfoPage.fillAndContinue(
         customer.firstName,
         customer.lastName,
-        customer.postalCode
+        customer.postalCode,
       );
 
       await test.step('Verify item subtotal', async () => {
-        expect(await checkoutOverviewPage.getItemTotal()).toBe(expectedSubtotal);
+        expect(await checkoutOverviewPage.getItemTotal()).toBe(
+          expectedSubtotal,
+        );
       });
 
       await test.step('Verify 8% tax', async () => {
@@ -129,11 +137,9 @@ test.describe('Checkout', () => {
         expect(await checkoutOverviewPage.getOrderTotal()).toBe(expectedTotal);
       });
     });
-
   });
 
   test.describe('Information validation', () => {
-
     /**
      * Data-driven negative tests — each missing field has its own error.
      * The factory pins ONE field to empty and randomises the rest.
@@ -170,18 +176,16 @@ test.describe('Checkout', () => {
         await checkoutInfoPage.fillAndContinue(
           customer.firstName,
           customer.lastName,
-          customer.postalCode
+          customer.postalCode,
         );
 
         expect(await checkoutInfoPage.hasError()).toBe(true);
         expect(await checkoutInfoPage.getErrorMessage()).toContain(error);
       });
     }
-
   });
 
   test.describe('Cancel and back navigation', () => {
-
     test('cancel on info page returns to the cart', async ({
       authenticatedPage,
       cartPage,
@@ -209,17 +213,15 @@ test.describe('Checkout', () => {
       await checkoutInfoPage.fillAndContinue(
         customer.firstName,
         customer.lastName,
-        customer.postalCode
+        customer.postalCode,
       );
       await checkoutOverviewPage.cancel();
 
       expect(await authenticatedPage.getPageTitle()).toBe('Products');
     });
-
   });
 
   test.describe('Post-order', () => {
-
     test('back home after order returns to inventory', async ({
       authenticatedPage,
       cartPage,
@@ -235,14 +237,12 @@ test.describe('Checkout', () => {
       await checkoutInfoPage.fillAndContinue(
         customer.firstName,
         customer.lastName,
-        customer.postalCode
+        customer.postalCode,
       );
       await checkoutOverviewPage.finish();
       await checkoutCompletePage.backToHome();
 
       expect(await authenticatedPage.getPageTitle()).toBe('Products');
     });
-
   });
-
 });

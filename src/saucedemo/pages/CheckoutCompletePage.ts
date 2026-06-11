@@ -14,12 +14,12 @@ export class CheckoutCompletePage {
   private readonly pageTitle: Locator;
 
   constructor(page: Page) {
-    this.page                = page;
-    this.confirmationHeader  = page.getByTestId('complete-header');
-    this.confirmationText    = page.getByTestId('complete-text');
-    this.backHomeButton      = page.getByTestId('back-to-products');
-    this.ponyExpressImage    = page.getByTestId('pony-express');
-    this.pageTitle           = page.getByTestId('title');
+    this.page = page;
+    this.confirmationHeader = page.getByTestId('complete-header');
+    this.confirmationText = page.getByTestId('complete-text');
+    this.backHomeButton = page.getByTestId('back-to-products');
+    this.ponyExpressImage = page.getByTestId('pony-express');
+    this.pageTitle = page.getByTestId('title');
   }
 
   // Actions as Methods

@@ -16,14 +16,14 @@ export class CheckoutInfoPage {
   private readonly pageTitle: Locator;
 
   constructor(page: Page) {
-    this.page             = page;
-    this.firstNameInput   = page.getByTestId('firstName');
-    this.lastNameInput    = page.getByTestId('lastName');
-    this.postalCodeInput  = page.getByTestId('postalCode');
-    this.continueButton   = page.getByTestId('continue');
-    this.cancelButton     = page.getByTestId('cancel');
-    this.errorMessage     = page.getByTestId('error');
-    this.pageTitle        = page.getByTestId('title');
+    this.page = page;
+    this.firstNameInput = page.getByTestId('firstName');
+    this.lastNameInput = page.getByTestId('lastName');
+    this.postalCodeInput = page.getByTestId('postalCode');
+    this.continueButton = page.getByTestId('continue');
+    this.cancelButton = page.getByTestId('cancel');
+    this.errorMessage = page.getByTestId('error');
+    this.pageTitle = page.getByTestId('title');
   }
 
   // Actions as Methods
@@ -46,7 +46,11 @@ export class CheckoutInfoPage {
   }
 
   /** Fill info and immediately continue — convenience method for happy-path tests */
-  async fillAndContinue(firstName: string, lastName: string, postalCode: string) {
+  async fillAndContinue(
+    firstName: string,
+    lastName: string,
+    postalCode: string,
+  ) {
     await this.fillInfo(firstName, lastName, postalCode);
     await this.continue();
   }

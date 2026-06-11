@@ -11,10 +11,11 @@ import { PRODUCTS } from '@saucedemo/data/products';
  *   🔀 Navigation    — continue shopping / proceed to checkout
  */
 test.describe('Cart', () => {
-
   test.describe('Contents', () => {
-
-    test('items added on inventory appear in the cart', async ({ authenticatedPage, cartPage }) => {
+    test('items added on inventory appear in the cart', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
       await authenticatedPage.goToCart();
@@ -25,12 +26,18 @@ test.describe('Cart', () => {
       expect(names).toContain(PRODUCTS.bikeLight.name);
     });
 
-    test('cart page title reads "Your Cart"', async ({ authenticatedPage, cartPage }) => {
+    test('cart page title reads "Your Cart"', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.goToCart();
       expect(await cartPage.getPageTitle()).toBe('Your Cart');
     });
 
-    test('cart prices match the product catalogue', async ({ authenticatedPage, cartPage }) => {
+    test('cart prices match the product catalogue', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.goToCart();
 
@@ -38,23 +45,30 @@ test.describe('Cart', () => {
       expect(prices).toContain(PRODUCTS.backpack.price);
     });
 
-    test('each item has a quantity of 1', async ({ authenticatedPage, cartPage }) => {
+    test('each item has a quantity of 1', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.goToCart();
 
       expect(await cartPage.getItemQuantity(PRODUCTS.backpack.name)).toBe(1);
     });
 
-    test('an untouched cart is empty', async ({ authenticatedPage, cartPage }) => {
+    test('an untouched cart is empty', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.goToCart();
       expect(await cartPage.isEmpty()).toBe(true);
     });
-
   });
 
   test.describe('Remove items', () => {
-
-    test('removing an item updates the cart count', async ({ authenticatedPage, cartPage }) => {
+    test('removing an item updates the cart count', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
       await authenticatedPage.goToCart();
@@ -62,35 +76,45 @@ test.describe('Cart', () => {
 
       await cartPage.removeItem(PRODUCTS.backpack.name);
       expect(await cartPage.getItemCount()).toBe(1);
-      expect(await cartPage.getItemNames()).not.toContain(PRODUCTS.backpack.name);
+      expect(await cartPage.getItemNames()).not.toContain(
+        PRODUCTS.backpack.name,
+      );
     });
 
-    test('removing all items empties the cart', async ({ authenticatedPage, cartPage }) => {
+    test('removing all items empties the cart', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.goToCart();
 
       await cartPage.removeItem(PRODUCTS.backpack.name);
       expect(await cartPage.isEmpty()).toBe(true);
     });
-
   });
 
   test.describe('Navigation', () => {
-
-    test('continue shopping returns to inventory', async ({ authenticatedPage, cartPage }) => {
+    test('continue shopping returns to inventory', async ({
+      authenticatedPage,
+      cartPage,
+    }) => {
       await authenticatedPage.goToCart();
       await cartPage.continueShopping();
       expect(await authenticatedPage.getPageTitle()).toBe('Products');
     });
 
-    test('checkout proceeds to the customer information page', async ({ authenticatedPage, cartPage, checkoutInfoPage }) => {
+    test('checkout proceeds to the customer information page', async ({
+      authenticatedPage,
+      cartPage,
+      checkoutInfoPage,
+    }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.goToCart();
       await cartPage.checkout();
 
-      expect(await checkoutInfoPage.getPageTitle()).toBe('Checkout: Your Information');
+      expect(await checkoutInfoPage.getPageTitle()).toBe(
+        'Checkout: Your Information',
+      );
     });
-
   });
-
 });

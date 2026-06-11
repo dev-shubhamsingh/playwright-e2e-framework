@@ -9,11 +9,11 @@ export class CartPage {
   private readonly pageTitle: Locator;
 
   constructor(page: Page) {
-    this.page                    = page;
-    this.cartItems               = page.getByTestId('inventory-item');
-    this.checkoutButton          = page.getByTestId('checkout');
-    this.continueShoppingButton  = page.getByTestId('continue-shopping');
-    this.pageTitle               = page.getByTestId('title');
+    this.page = page;
+    this.cartItems = page.getByTestId('inventory-item');
+    this.checkoutButton = page.getByTestId('checkout');
+    this.continueShoppingButton = page.getByTestId('continue-shopping');
+    this.pageTitle = page.getByTestId('title');
   }
 
   // Actions as Methods
@@ -35,7 +35,9 @@ export class CartPage {
 
   /** Get an array of all item prices in the cart as numbers */
   async getItemPrices(): Promise<number[]> {
-    const rawPrices = await this.page.getByTestId('inventory-item-price').allInnerTexts();
+    const rawPrices = await this.page
+      .getByTestId('inventory-item-price')
+      .allInnerTexts();
     return rawPrices.map((p) => parseFloat(p.replace('$', '')));
   }
 

@@ -46,11 +46,11 @@ and body themselves.
 
 Import from `@dummyjson/fixtures`:
 
-| Fixture | Scope | Purpose |
-|---|---|---|
-| `authClient` | test | Anonymous `AuthClient` for driving `/auth/*` directly. |
-| `authTokens` | worker | Logs in once per worker; shares access/refresh tokens. |
-| `authedRequest` | test | Request context with `Authorization: Bearer <token>` pre-attached. |
+| Fixture         | Scope  | Purpose                                                            |
+| --------------- | ------ | ------------------------------------------------------------------ |
+| `authClient`    | test   | Anonymous `AuthClient` for driving `/auth/*` directly.             |
+| `authTokens`    | worker | Logs in once per worker; shares access/refresh tokens.             |
+| `authedRequest` | test   | Request context with `Authorization: Bearer <token>` pre-attached. |
 
 The login response is validated against its schema inside the `authTokens`
 fixture, so a broken auth contract fails fast before dependent tests run.
@@ -68,11 +68,11 @@ separately.
 Defaults run out of the box. Override via environment variables (see
 `.env.example`):
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `API_BASE_URL` | `https://dummyjson.com` | API base URL. |
-| `DUMMYJSON_USERNAME` | `emilys` | Seeded login user. |
-| `DUMMYJSON_PASSWORD` | `emilyspass` | Seeded login password. |
+| Variable             | Default                 | Purpose                |
+| -------------------- | ----------------------- | ---------------------- |
+| `API_BASE_URL`       | `https://dummyjson.com` | API base URL.          |
+| `DUMMYJSON_USERNAME` | `emilys`                | Seeded login user.     |
+| `DUMMYJSON_PASSWORD` | `emilyspass`            | Seeded login password. |
 
 ## Running
 
@@ -86,7 +86,10 @@ npx playwright test tests/dummyjson/api/auth.spec.ts
 
 ## Coverage
 
-| Area | Scenarios |
-|---|---|
+| Area | Scenarios                                                                                          |
+| ---- | -------------------------------------------------------------------------------------------------- |
 | Auth | login happy path, invalid credentials (400), `/auth/me` with token, `/auth/me` without token (401) |
+
+```
+
 ```

@@ -25,7 +25,7 @@ setup('authenticate as standard_user', async ({ page }) => {
   await loginPage.goto();
   await loginPage.login(
     process.env.TEST_USER ?? 'standard_user',
-    process.env.TEST_PASSWORD ?? 'secret_sauce'
+    process.env.TEST_PASSWORD ?? 'secret_sauce',
   );
 
   // Confirm we actually reached the inventory page before saving state

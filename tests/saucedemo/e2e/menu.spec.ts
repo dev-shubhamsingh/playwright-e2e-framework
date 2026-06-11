@@ -10,10 +10,11 @@ import { PRODUCTS } from '@saucedemo/data/products';
  *   🚪 Logout            — returns to the login page
  */
 test.describe('Side Menu', () => {
-
   test.describe('Reset App State', () => {
-
-    test('clears items from the cart', async ({ authenticatedPage, menuComponent }) => {
+    test('clears items from the cart', async ({
+      authenticatedPage,
+      menuComponent,
+    }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
       expect(await authenticatedPage.getCartCount()).toBe(2);
@@ -23,11 +24,9 @@ test.describe('Side Menu', () => {
       // After reset the badge should be gone
       expect(await authenticatedPage.isCartBadgeVisible()).toBe(false);
     });
-
   });
 
   test.describe('Navigation', () => {
-
     test('All Items returns to the inventory page', async ({
       authenticatedPage,
       productDetailPage,
@@ -41,17 +40,16 @@ test.describe('Side Menu', () => {
       await menuComponent.goToAllItems();
       expect(await authenticatedPage.getPageTitle()).toBe('Products');
     });
-
   });
 
   test.describe('Logout', () => {
-
-    test('returns the user to the login page', async ({ menuComponent, page }) => {
+    test('returns the user to the login page', async ({
+      menuComponent,
+      page,
+    }) => {
       await menuComponent.logout();
       await expect(page).toHaveURL('https://www.saucedemo.com/');
       await expect(page.getByTestId('login-button')).toBeVisible();
     });
-
   });
-
 });

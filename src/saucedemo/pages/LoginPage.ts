@@ -9,11 +9,11 @@ export class LoginPage {
   private readonly errorMessage: Locator;
 
   constructor(page: Page) {
-    this.page          = page;
+    this.page = page;
     this.usernameInput = page.getByTestId('username');
     this.passwordInput = page.getByTestId('password');
-    this.loginButton   = page.getByTestId('login-button');
-    this.errorMessage  = page.getByTestId('error');
+    this.loginButton = page.getByTestId('login-button');
+    this.errorMessage = page.getByTestId('error');
   }
 
   // Actions as Methods

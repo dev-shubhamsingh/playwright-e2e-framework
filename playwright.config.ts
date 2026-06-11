@@ -26,9 +26,9 @@ export default defineConfig({
     // SauceDemo uses data-test="..." not data-testid
     testIdAttribute: 'data-test',
 
-    trace:      'on-first-retry',
+    trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video:      'on-first-retry',
+    video: 'on-first-retry',
   },
 
   projects: [

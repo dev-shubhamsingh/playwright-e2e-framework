@@ -34,7 +34,9 @@ export class TestDataFactory {
    * Pass `overrides` to fix specific fields:
    *   buildCheckoutInfo({ postalCode: '' }) → random name, empty zip
    */
-  static buildCheckoutInfo(overrides: Partial<CheckoutInfo> = {}): CheckoutInfo {
+  static buildCheckoutInfo(
+    overrides: Partial<CheckoutInfo> = {},
+  ): CheckoutInfo {
     return {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),

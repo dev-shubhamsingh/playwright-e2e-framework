@@ -21,13 +21,13 @@ export class MenuComponent {
   private readonly resetLink: Locator;
 
   constructor(page: Page) {
-    this.page         = page;
-    this.menuButton   = page.getByRole('button', { name: 'Open Menu' });
-    this.closeButton  = page.getByRole('button', { name: 'Close Menu' });
+    this.page = page;
+    this.menuButton = page.getByRole('button', { name: 'Open Menu' });
+    this.closeButton = page.getByRole('button', { name: 'Close Menu' });
     this.allItemsLink = page.getByTestId('inventory-sidebar-link');
-    this.aboutLink    = page.getByTestId('about-sidebar-link');
-    this.logoutLink   = page.getByTestId('logout-sidebar-link');
-    this.resetLink    = page.getByTestId('reset-sidebar-link');
+    this.aboutLink = page.getByTestId('about-sidebar-link');
+    this.logoutLink = page.getByTestId('logout-sidebar-link');
+    this.resetLink = page.getByTestId('reset-sidebar-link');
   }
 
   // Actions as Methods

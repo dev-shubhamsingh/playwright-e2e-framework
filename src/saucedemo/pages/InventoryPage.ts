@@ -12,12 +12,12 @@ export class InventoryPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.productList    = page.locator('.inventory_item');
-    this.cartIcon       = page.getByTestId('shopping-cart-link');
-    this.cartBadge      = page.getByTestId('shopping-cart-badge');
-    this.sortDropdown   = page.getByTestId('product-sort-container');
-    this.menuButton     = page.getByRole('button', { name: 'Open Menu' });
-    this.pageTitle      = page.getByTestId('title');
+    this.productList = page.locator('.inventory_item');
+    this.cartIcon = page.getByTestId('shopping-cart-link');
+    this.cartBadge = page.getByTestId('shopping-cart-badge');
+    this.sortDropdown = page.getByTestId('product-sort-container');
+    this.menuButton = page.getByRole('button', { name: 'Open Menu' });
+    this.pageTitle = page.getByTestId('title');
   }
 
   // Actions as Methods
@@ -39,7 +39,9 @@ export class InventoryPage {
 
   /** Get an array of all product prices as numbers */
   async getProductPrices(): Promise<number[]> {
-    const rawPrices = await this.page.getByTestId('inventory-item-price').allInnerTexts();
+    const rawPrices = await this.page
+      .getByTestId('inventory-item-price')
+      .allInnerTexts();
     // rawPrices look like ['$9.99', '$15.99'] — strip the $ and parse
     return rawPrices.map((p) => parseFloat(p.replace('$', '')));
   }
@@ -62,7 +64,10 @@ export class InventoryPage {
 
   /** Click a product name to go to its detail page */
   async openProductByName(productName: string) {
-    await this.page.getByTestId('inventory-item-name').filter({ hasText: productName }).click();
+    await this.page
+      .getByTestId('inventory-item-name')
+      .filter({ hasText: productName })
+      .click();
   }
 
   /** Sort products using the dropdown */

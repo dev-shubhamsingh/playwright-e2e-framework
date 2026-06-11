@@ -13,15 +13,15 @@ export class ProductDetailPage {
   private readonly cartBadge: Locator;
 
   constructor(page: Page) {
-    this.page               = page;
-    this.productName        = page.getByTestId('inventory-item-name');
+    this.page = page;
+    this.productName = page.getByTestId('inventory-item-name');
     this.productDescription = page.getByTestId('inventory-item-desc');
-    this.productPrice       = page.getByTestId('inventory-item-price');
-    this.addToCartButton    = page.getByRole('button', { name: /add to cart/i });
-    this.removeButton       = page.getByRole('button', { name: /remove/i });
-    this.backButton         = page.getByTestId('back-to-products');
-    this.cartIcon           = page.getByTestId('shopping-cart-link');
-    this.cartBadge          = page.getByTestId('shopping-cart-badge');
+    this.productPrice = page.getByTestId('inventory-item-price');
+    this.addToCartButton = page.getByRole('button', { name: /add to cart/i });
+    this.removeButton = page.getByRole('button', { name: /remove/i });
+    this.backButton = page.getByTestId('back-to-products');
+    this.cartIcon = page.getByTestId('shopping-cart-link');
+    this.cartBadge = page.getByTestId('shopping-cart-badge');
   }
 
   // Actions as Methods

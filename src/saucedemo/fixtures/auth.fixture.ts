@@ -33,7 +33,6 @@ type AuthFixtures = {
 };
 
 export const test = base.extend<AuthFixtures>({
-
   authenticatedPage: async ({ page }, use) => {
     // storageState is already injected by the 'authenticated' project config.
     // Just navigate to the start page — user is already logged in.
@@ -46,7 +45,6 @@ export const test = base.extend<AuthFixtures>({
     // logout/reset here would break tests that intentionally end on another
     // page (e.g. the logout test landing on the login screen).
   },
-
 });
 
 export { expect } from '@playwright/test';

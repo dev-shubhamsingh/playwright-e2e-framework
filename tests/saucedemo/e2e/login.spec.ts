@@ -11,7 +11,6 @@ import { USERS, INVALID_CREDENTIALS } from '@saucedemo/data/users';
  *   🐢 Performance — slow login still lands on inventory
  */
 test.describe('Login', () => {
-
   // Navigate to login page before every test in this file
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.goto();
@@ -21,8 +20,10 @@ test.describe('Login', () => {
   // POSITIVE TESTS
   // ─────────────────────────────────────────────
   test.describe('Valid credentials', () => {
-
-    test('standard user can log in and reach inventory', async ({ loginPage, page }) => {
+    test('standard user can log in and reach inventory', async ({
+      loginPage,
+      page,
+    }) => {
       await test.step('Enter credentials', async () => {
         await loginPage.login(USERS.standard.username, USERS.standard.password);
       });
@@ -33,12 +34,15 @@ test.describe('Login', () => {
       });
     });
 
-    test('performance glitch user logs in successfully (within timeout)', async ({ loginPage, page }) => {
+    test('performance glitch user logs in successfully (within timeout)', async ({
+      loginPage,
+      page,
+    }) => {
       // Playwright default timeout is 30s — more than enough for the ~5s delay
       await test.step('Enter credentials', async () => {
         await loginPage.login(
           USERS.performanceGlitch.username,
-          USERS.performanceGlitch.password
+          USERS.performanceGlitch.password,
         );
       });
 
@@ -46,46 +50,43 @@ test.describe('Login', () => {
         await expect(page).toHaveURL(/inventory/, { timeout: 10_000 });
       });
     });
-
   });
 
   // ─────────────────────────────────────────────
   // NEGATIVE TESTS — data-driven with test.each
   // ─────────────────────────────────────────────
   test.describe('Invalid credentials', () => {
-
     /**
      * test.each lets you run the same test logic with different data.
      * Each entry in INVALID_CREDENTIALS becomes a separate test case.
      * The test name auto-fills from the object fields.
      */
     for (const { username, password, expectedError } of INVALID_CREDENTIALS) {
-      test(`shows error — username: "${username || '(empty)'}" password: "${password || '(empty)'}"`,
-        async ({ loginPage }) => {
+      test(`shows error — username: "${username || '(empty)'}" password: "${password || '(empty)'}"`, async ({
+        loginPage,
+      }) => {
+        await test.step('Submit invalid credentials', async () => {
+          await loginPage.login(username, password);
+        });
 
-          await test.step('Submit invalid credentials', async () => {
-            await loginPage.login(username, password);
-          });
-
-          await test.step('Verify error message is shown', async () => {
-            expect(await loginPage.hasError()).toBe(true);
-            expect(await loginPage.getErrorMessage()).toContain(expectedError);
-          });
-
-        }
-      );
+        await test.step('Verify error message is shown', async () => {
+          expect(await loginPage.hasError()).toBe(true);
+          expect(await loginPage.getErrorMessage()).toContain(expectedError);
+        });
+      });
     }
-
   });
 
   // ─────────────────────────────────────────────
   // LOCKED OUT USER
   // ─────────────────────────────────────────────
   test.describe('Locked out user', () => {
-
     test('shows locked out error message', async ({ loginPage, page }) => {
       await test.step('Attempt login as locked out user', async () => {
-        await loginPage.login(USERS.lockedOut.username, USERS.lockedOut.password);
+        await loginPage.login(
+          USERS.lockedOut.username,
+          USERS.lockedOut.password,
+        );
       });
 
       await test.step('Verify still on login page with correct error', async () => {
@@ -95,19 +96,19 @@ test.describe('Login', () => {
         // Should show the specific locked-out error
         expect(await loginPage.hasError()).toBe(true);
         expect(await loginPage.getErrorMessage()).toContain(
-          'Sorry, this user has been locked out'
+          'Sorry, this user has been locked out',
         );
       });
     });
-
   });
 
   // ─────────────────────────────────────────────
   // SESSION / NAVIGATION TESTS
   // ─────────────────────────────────────────────
   test.describe('Session behaviour', () => {
-
-    test('cannot access inventory page without logging in', async ({ page }) => {
+    test('cannot access inventory page without logging in', async ({
+      page,
+    }) => {
       await test.step('Navigate directly to inventory', async () => {
         await page.goto('/inventory.html');
       });
@@ -116,7 +117,5 @@ test.describe('Login', () => {
         await expect(page).toHaveURL('https://www.saucedemo.com/');
       });
     });
-
   });
-
 });
