@@ -1,5 +1,5 @@
 import { APIResponse } from '@playwright/test';
-import { BaseClient } from './BaseClient';
+import { ApiClient } from '@core/http';
 
 export interface LoginCredentials {
   username: string;
@@ -21,7 +21,7 @@ export interface LoginOptions {
  *
  * Methods return the raw APIResponse so callers assert on status + body.
  */
-export class AuthClient extends BaseClient {
+export class AuthClient extends ApiClient {
   /**
    * Authenticate a user. On success returns 200 with tokens in the body
    * (and as cookies). On invalid credentials DummyJSON returns 400.
@@ -30,7 +30,7 @@ export class AuthClient extends BaseClient {
     credentials: LoginCredentials,
     options: LoginOptions = {},
   ): Promise<APIResponse> {
-    return this.request.post('/auth/login', {
+    return this.post('/auth/login', {
       data: { ...credentials, ...options },
     });
   }
@@ -43,7 +43,7 @@ export class AuthClient extends BaseClient {
    * (e.g. a bearer header pre-attached by the `authedRequest` fixture).
    */
   async me(accessToken?: string): Promise<APIResponse> {
-    return this.request.get('/auth/me', {
+    return this.get('/auth/me', {
       headers: accessToken
         ? { Authorization: `Bearer ${accessToken}` }
         : undefined,
@@ -58,7 +58,7 @@ export class AuthClient extends BaseClient {
     refreshToken: string,
     options: LoginOptions = {},
   ): Promise<APIResponse> {
-    return this.request.post('/auth/refresh', {
+    return this.post('/auth/refresh', {
       data: { refreshToken, ...options },
     });
   }
