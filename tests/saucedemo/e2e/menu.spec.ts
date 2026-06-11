@@ -46,7 +46,7 @@ test.describe('Side Menu', () => {
 
   test.describe('Logout', () => {
 
-    test('returns the user to the login page', async ({ authenticatedPage, menuComponent, page }) => {
+    test('returns the user to the login page', async ({ menuComponent, page }) => {
       await menuComponent.logout();
       await expect(page).toHaveURL('https://www.saucedemo.com/');
       await expect(page.getByTestId('login-button')).toBeVisible();
