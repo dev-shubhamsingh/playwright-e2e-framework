@@ -12,6 +12,7 @@
     "test:contract": "jest --config jest.config.js",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "test:a11y": "playwright test --project=a11y",
     "perf:load": "k6 run tests/dummyjson/performance/load.ts",
     "perf:stress": "k6 run tests/dummyjson/performance/stress.ts",
     "perf:spike": "k6 run tests/dummyjson/performance/spike.ts",
@@ -46,6 +47,7 @@
     "testing"
   ],
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.4.0",
     "@pact-foundation/pact": "^16.5.0",

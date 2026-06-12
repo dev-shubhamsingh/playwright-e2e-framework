@@ -194,17 +194,18 @@ GitHub Actions (`.github/workflows/playwright.yml`) runs tests in three tiers:
 **`typecheck` — every push / PR:** runs first, blocks all other jobs. Fast gate
 that prevents broken types from wasting browser minutes.
 
-**`test-ui`, `test-api`, and `test-contract` — every push / PR, run in parallel
-after `typecheck`:** the required jobs that must stay green to merge. Each has
-its own timeout and Chromium-only install where needed; UI and API upload a
-Playwright HTML report and Allure results, and the contract job uploads the
-generated pact files — all as separate artifacts (retained 14 days).
+**`test-ui`, `test-api`, `test-contract`, and `test-a11y` — every push / PR, run
+in parallel after `typecheck`:** the required jobs that must stay green to
+merge. Each has its own timeout and Chromium-only install where needed; jobs
+upload their Playwright HTML report, Allure results, or pact files as separate
+artifacts (retained 14 days).
 
 | Job             | Runs                     | Timeout |
 | --------------- | ------------------------ | ------- |
 | `test-ui`       | `login`, `authenticated` | 20 min  |
 | `test-api`      | `api`                    | 10 min  |
 | `test-contract` | Pact suite (Jest)        | 10 min  |
+| `test-a11y`     | `a11y` (axe-core)        | 15 min  |
 
 **`cross-browser` matrix — nightly + `workflow_dispatch` only:**
 Firefox, WebKit, mobile-chrome, mobile-safari — one job per browser,
@@ -395,6 +396,26 @@ are committed next to the spec.
 
 ---
 
+## Accessibility — axe-core
+
+WCAG 2.0/2.1 A + AA scans of the authenticated SauceDemo pages
+(`tests/saucedemo/a11y/`) using [`@axe-core/playwright`](https://github.com/dequelabs/axe-core-npm).
+Runs in a dedicated **`a11y`** project (Chromium). Full axe results attach to
+the report (visible in Allure).
+
+```bash
+npm run test:a11y
+```
+
+The suite caught a real defect: SauceDemo's product-sort `<select>` has no
+accessible name (`select-name`, critical). Since SauceDemo is third-party and
+unfixable from here, known critical violations are **baselined per page** — the
+suite still fails on any _new_ critical, so it acts as a genuine regression
+guard rather than ignoring criticals wholesale. Unlike visual snapshots, a11y
+has no OS-specific output, so it **is** part of the gating CI.
+
+---
+
 ## TARS
 
 This project is built alongside **TARS** (Test Automation & Reliability System),
@@ -416,6 +437,7 @@ or reviewing tests.
 - Pact (`@pact-foundation/pact`) + Jest (consumer contract testing)
 - k6 (performance: load, stress, spike, soak — TypeScript scripts)
 - OWASP ZAP (passive security baseline scan via GitHub Actions)
+- axe-core (`@axe-core/playwright`) for accessibility (WCAG 2.1 AA) scans
 - ESLint + Prettier + husky + lint-staged (quality gates)
 
 ---
@@ -425,18 +447,18 @@ or reviewing tests.
 The framework is intentionally phased — each phase adds a new testing discipline
 while building on the patterns already in place.
 
-| Phase | Discipline                                                               | Status     |
-| ----- | ------------------------------------------------------------------------ | ---------- |
-| 0     | Quality gates (ESLint, Prettier, husky, typed env)                       | ✅ Done    |
-| 1     | API integration (core HTTP client + DummyJSON auth/products/carts/users) | ✅ Done    |
-| 2     | Test tagging (`@smoke` / `@regression`)                                  | ✅ Done    |
-| 3     | Base-page abstraction (`@core/ui`) + DRY page objects                    | ✅ Done    |
-| 4     | Allure reporting + CI api/ui job split                                   | ✅ Done    |
-| 5     | Contract testing (Pact, consumer-driven)                                 | ✅ Done    |
-| 6     | Performance testing — load, stress, spike, soak (k6)                     | ✅ Done    |
-| 7     | Security testing — baseline scan (OWASP ZAP)                             | ✅ Done    |
-| 8     | Visual regression testing (Playwright snapshots)                         | ✅ Done    |
-| 9     | Accessibility testing (axe-core)                                         | 📋 Planned |
+| Phase | Discipline                                                               | Status  |
+| ----- | ------------------------------------------------------------------------ | ------- |
+| 0     | Quality gates (ESLint, Prettier, husky, typed env)                       | ✅ Done |
+| 1     | API integration (core HTTP client + DummyJSON auth/products/carts/users) | ✅ Done |
+| 2     | Test tagging (`@smoke` / `@regression`)                                  | ✅ Done |
+| 3     | Base-page abstraction (`@core/ui`) + DRY page objects                    | ✅ Done |
+| 4     | Allure reporting + CI api/ui job split                                   | ✅ Done |
+| 5     | Contract testing (Pact, consumer-driven)                                 | ✅ Done |
+| 6     | Performance testing — load, stress, spike, soak (k6)                     | ✅ Done |
+| 7     | Security testing — baseline scan (OWASP ZAP)                             | ✅ Done |
+| 8     | Visual regression testing (Playwright snapshots)                         | ✅ Done |
+| 9     | Accessibility testing (axe-core)                                         | ✅ Done |
 
 ### Phase 5 — Contract testing (Pact)
 

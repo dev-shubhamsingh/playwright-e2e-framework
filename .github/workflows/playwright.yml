@@ -118,6 +118,32 @@ jobs:
           path: pacts/
           retention-days: 14
 
+  # ── Accessibility suite (axe-core, Chromium) ──────────────────────────────
+  test-a11y:
+    name: Accessibility — axe-core
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Run accessibility suite
+        run: npm run test:a11y
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results-a11y
+          path: allure-results/
+          retention-days: 14
+
   # ── Cross-browser matrix: scheduled + manual only ─────────────────────────
   cross-browser:
     name: Cross-browser (${{ matrix.project }})

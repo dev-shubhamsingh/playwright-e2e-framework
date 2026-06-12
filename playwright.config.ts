@@ -124,6 +124,18 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+
+    // ── Accessibility (Chromium only) ─────────────────────────────────────
+    // axe-core WCAG scans of the authenticated SauceDemo pages.
+    {
+      name: 'a11y',
+      testDir: './tests/saucedemo/a11y',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: STORAGE_STATE,
+      },
+      dependencies: ['setup'],
+    },
   ],
 
   outputDir: 'test-results/',
