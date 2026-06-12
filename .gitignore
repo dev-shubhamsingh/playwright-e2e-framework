@@ -10,6 +10,10 @@ blob-report/
 test-results/
 playwright/.cache/
 
+# Allure reporting artifacts
+allure-results/
+allure-report/
+
 # Secrets & local config — never commit
 .env
 .env.local
