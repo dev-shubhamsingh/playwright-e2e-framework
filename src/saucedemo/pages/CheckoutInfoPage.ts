@@ -1,32 +1,18 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { SauceDemoPage } from './SauceDemoPage';
 
 /**
  * Checkout Step One — customer information (first name, last name, zip code).
  * URL: /checkout-step-one.html
  */
-export class CheckoutInfoPage {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly firstNameInput: Locator;
-  private readonly lastNameInput: Locator;
-  private readonly postalCodeInput: Locator;
-  private readonly continueButton: Locator;
-  private readonly cancelButton: Locator;
-  private readonly errorMessage: Locator;
-  private readonly pageTitle: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.firstNameInput = page.getByTestId('firstName');
-    this.lastNameInput = page.getByTestId('lastName');
-    this.postalCodeInput = page.getByTestId('postalCode');
-    this.continueButton = page.getByTestId('continue');
-    this.cancelButton = page.getByTestId('cancel');
-    this.errorMessage = page.getByTestId('error');
-    this.pageTitle = page.getByTestId('title');
-  }
-
-  // Actions as Methods
+export class CheckoutInfoPage extends SauceDemoPage {
+  private readonly firstNameInput: Locator = this.page.getByTestId('firstName');
+  private readonly lastNameInput: Locator = this.page.getByTestId('lastName');
+  private readonly postalCodeInput: Locator =
+    this.page.getByTestId('postalCode');
+  private readonly continueButton: Locator = this.page.getByTestId('continue');
+  private readonly cancelButton: Locator = this.page.getByTestId('cancel');
+  private readonly errorMessage: Locator = this.page.getByTestId('error');
 
   /** Fill in all customer information fields */
   async fillInfo(firstName: string, lastName: string, postalCode: string) {
@@ -63,10 +49,5 @@ export class CheckoutInfoPage {
   /** Returns true if the error message container is visible */
   async hasError(): Promise<boolean> {
     return this.errorMessage.isVisible();
-  }
-
-  /** Get the page title text e.g. "Checkout: Your Information" */
-  async getPageTitle(): Promise<string> {
-    return this.pageTitle.innerText();
   }
 }

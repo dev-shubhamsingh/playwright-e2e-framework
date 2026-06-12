@@ -1,30 +1,23 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { SauceDemoPage } from './SauceDemoPage';
 
-export class InventoryPage {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly productList: Locator;
-  private readonly cartIcon: Locator;
-  private readonly cartBadge: Locator;
-  private readonly sortDropdown: Locator;
-  private readonly menuButton: Locator;
-  private readonly pageTitle: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.productList = page.locator('.inventory_item');
-    this.cartIcon = page.getByTestId('shopping-cart-link');
-    this.cartBadge = page.getByTestId('shopping-cart-badge');
-    this.sortDropdown = page.getByTestId('product-sort-container');
-    this.menuButton = page.getByRole('button', { name: 'Open Menu' });
-    this.pageTitle = page.getByTestId('title');
-  }
-
-  // Actions as Methods
+export class InventoryPage extends SauceDemoPage {
+  private readonly productList: Locator = this.page.locator('.inventory_item');
+  private readonly cartIcon: Locator =
+    this.page.getByTestId('shopping-cart-link');
+  private readonly cartBadge: Locator = this.page.getByTestId(
+    'shopping-cart-badge',
+  );
+  private readonly sortDropdown: Locator = this.page.getByTestId(
+    'product-sort-container',
+  );
+  private readonly menuButton: Locator = this.page.getByRole('button', {
+    name: 'Open Menu',
+  });
 
   /** Navigate directly to the inventory page */
   async goto() {
-    await this.page.goto('https://www.saucedemo.com/inventory.html');
+    await super.goto('/inventory.html');
   }
 
   /** Get the number of products currently displayed */
@@ -94,10 +87,5 @@ export class InventoryPage {
   /** Open the hamburger side menu */
   async openMenu() {
     await this.menuButton.click();
-  }
-
-  /** Get the page title text e.g. "Products" */
-  async getPageTitle(): Promise<string> {
-    return this.pageTitle.innerText();
   }
 }

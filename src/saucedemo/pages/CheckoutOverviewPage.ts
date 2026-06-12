@@ -1,36 +1,22 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { SauceDemoPage } from './SauceDemoPage';
 
 /**
  * Checkout Step Two — order summary/overview before placing the order.
  * URL: /checkout-step-two.html
  */
-export class CheckoutOverviewPage {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly cartItems: Locator;
-  private readonly itemTotal: Locator;
-  private readonly taxAmount: Locator;
-  private readonly orderTotal: Locator;
-  private readonly finishButton: Locator;
-  private readonly cancelButton: Locator;
-  private readonly pageTitle: Locator;
-  private readonly paymentInfo: Locator;
-  private readonly shippingInfo: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.cartItems = page.getByTestId('inventory-item');
-    this.itemTotal = page.getByTestId('subtotal-label');
-    this.taxAmount = page.getByTestId('tax-label');
-    this.orderTotal = page.getByTestId('total-label');
-    this.finishButton = page.getByTestId('finish');
-    this.cancelButton = page.getByTestId('cancel');
-    this.pageTitle = page.getByTestId('title');
-    this.paymentInfo = page.getByTestId('payment-info-value');
-    this.shippingInfo = page.getByTestId('shipping-info-value');
-  }
-
-  // Actions as Methods
+export class CheckoutOverviewPage extends SauceDemoPage {
+  private readonly cartItems: Locator = this.page.getByTestId('inventory-item');
+  private readonly itemTotal: Locator = this.page.getByTestId('subtotal-label');
+  private readonly taxAmount: Locator = this.page.getByTestId('tax-label');
+  private readonly orderTotal: Locator = this.page.getByTestId('total-label');
+  private readonly finishButton: Locator = this.page.getByTestId('finish');
+  private readonly cancelButton: Locator = this.page.getByTestId('cancel');
+  private readonly paymentInfo: Locator =
+    this.page.getByTestId('payment-info-value');
+  private readonly shippingInfo: Locator = this.page.getByTestId(
+    'shipping-info-value',
+  );
 
   /** Get the number of items in the order summary */
   async getItemCount(): Promise<number> {
@@ -82,10 +68,5 @@ export class CheckoutOverviewPage {
   /** Cancel and go back to inventory */
   async cancel() {
     await this.cancelButton.click();
-  }
-
-  /** Get the page title text e.g. "Checkout: Overview" */
-  async getPageTitle(): Promise<string> {
-    return this.pageTitle.innerText();
   }
 }

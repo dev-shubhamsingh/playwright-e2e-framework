@@ -1,30 +1,29 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { BasePage } from '@core/ui';
 
-export class ProductDetailPage {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly productName: Locator;
-  private readonly productDescription: Locator;
-  private readonly productPrice: Locator;
-  private readonly addToCartButton: Locator;
-  private readonly removeButton: Locator;
-  private readonly backButton: Locator;
-  private readonly cartIcon: Locator;
-  private readonly cartBadge: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.productName = page.getByTestId('inventory-item-name');
-    this.productDescription = page.getByTestId('inventory-item-desc');
-    this.productPrice = page.getByTestId('inventory-item-price');
-    this.addToCartButton = page.getByRole('button', { name: /add to cart/i });
-    this.removeButton = page.getByRole('button', { name: /remove/i });
-    this.backButton = page.getByTestId('back-to-products');
-    this.cartIcon = page.getByTestId('shopping-cart-link');
-    this.cartBadge = page.getByTestId('shopping-cart-badge');
-  }
-
-  // Actions as Methods
+export class ProductDetailPage extends BasePage {
+  private readonly productName: Locator = this.page.getByTestId(
+    'inventory-item-name',
+  );
+  private readonly productDescription: Locator = this.page.getByTestId(
+    'inventory-item-desc',
+  );
+  private readonly productPrice: Locator = this.page.getByTestId(
+    'inventory-item-price',
+  );
+  private readonly addToCartButton: Locator = this.page.getByRole('button', {
+    name: /add to cart/i,
+  });
+  private readonly removeButton: Locator = this.page.getByRole('button', {
+    name: /remove/i,
+  });
+  private readonly backButton: Locator =
+    this.page.getByTestId('back-to-products');
+  private readonly cartIcon: Locator =
+    this.page.getByTestId('shopping-cart-link');
+  private readonly cartBadge: Locator = this.page.getByTestId(
+    'shopping-cart-badge',
+  );
 
   /** Get the displayed product name */
   async getName(): Promise<string> {

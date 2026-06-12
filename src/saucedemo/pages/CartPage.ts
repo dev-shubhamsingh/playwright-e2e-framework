@@ -1,26 +1,15 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { SauceDemoPage } from './SauceDemoPage';
 
-export class CartPage {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly cartItems: Locator;
-  private readonly checkoutButton: Locator;
-  private readonly continueShoppingButton: Locator;
-  private readonly pageTitle: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.cartItems = page.getByTestId('inventory-item');
-    this.checkoutButton = page.getByTestId('checkout');
-    this.continueShoppingButton = page.getByTestId('continue-shopping');
-    this.pageTitle = page.getByTestId('title');
-  }
-
-  // Actions as Methods
+export class CartPage extends SauceDemoPage {
+  private readonly cartItems: Locator = this.page.getByTestId('inventory-item');
+  private readonly checkoutButton: Locator = this.page.getByTestId('checkout');
+  private readonly continueShoppingButton: Locator =
+    this.page.getByTestId('continue-shopping');
 
   /** Navigate directly to the cart page */
   async goto() {
-    await this.page.goto('https://www.saucedemo.com/cart.html');
+    await super.goto('/cart.html');
   }
 
   /** Get the number of items currently in the cart */
@@ -62,11 +51,6 @@ export class CartPage {
   /** Go back to continue shopping */
   async continueShopping() {
     await this.continueShoppingButton.click();
-  }
-
-  /** Get the page title text e.g. "Your Cart" */
-  async getPageTitle(): Promise<string> {
-    return this.pageTitle.innerText();
   }
 
   /** Returns true if the cart is empty (no items) */

@@ -1,28 +1,19 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { SauceDemoPage } from './SauceDemoPage';
 
 /**
  * Checkout Complete — order confirmation screen.
  * URL: /checkout-complete.html
  */
-export class CheckoutCompletePage {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly confirmationHeader: Locator;
-  private readonly confirmationText: Locator;
-  private readonly backHomeButton: Locator;
-  private readonly ponyExpressImage: Locator;
-  private readonly pageTitle: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.confirmationHeader = page.getByTestId('complete-header');
-    this.confirmationText = page.getByTestId('complete-text');
-    this.backHomeButton = page.getByTestId('back-to-products');
-    this.ponyExpressImage = page.getByTestId('pony-express');
-    this.pageTitle = page.getByTestId('title');
-  }
-
-  // Actions as Methods
+export class CheckoutCompletePage extends SauceDemoPage {
+  private readonly confirmationHeader: Locator =
+    this.page.getByTestId('complete-header');
+  private readonly confirmationText: Locator =
+    this.page.getByTestId('complete-text');
+  private readonly backHomeButton: Locator =
+    this.page.getByTestId('back-to-products');
+  private readonly ponyExpressImage: Locator =
+    this.page.getByTestId('pony-express');
 
   /** Get the confirmation header text e.g. "Thank you for your order!" */
   async getConfirmationHeader(): Promise<string> {
@@ -42,10 +33,5 @@ export class CheckoutCompletePage {
   /** Returns true if the confirmation image is visible */
   async isConfirmationImageVisible(): Promise<boolean> {
     return this.ponyExpressImage.isVisible();
-  }
-
-  /** Get the page title text e.g. "Checkout: Complete!" */
-  async getPageTitle(): Promise<string> {
-    return this.pageTitle.innerText();
   }
 }

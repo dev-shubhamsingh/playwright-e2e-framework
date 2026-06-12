@@ -1,26 +1,15 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { BasePage } from '@core/ui';
 
-export class LoginPage {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly usernameInput: Locator;
-  private readonly passwordInput: Locator;
-  private readonly loginButton: Locator;
-  private readonly errorMessage: Locator;
+export class LoginPage extends BasePage {
+  private readonly usernameInput: Locator = this.page.getByTestId('username');
+  private readonly passwordInput: Locator = this.page.getByTestId('password');
+  private readonly loginButton: Locator = this.page.getByTestId('login-button');
+  private readonly errorMessage: Locator = this.page.getByTestId('error');
 
-  constructor(page: Page) {
-    this.page = page;
-    this.usernameInput = page.getByTestId('username');
-    this.passwordInput = page.getByTestId('password');
-    this.loginButton = page.getByTestId('login-button');
-    this.errorMessage = page.getByTestId('error');
-  }
-
-  // Actions as Methods
-
-  /** Navigate to the login page */
+  /** Navigate to the login page (site root). */
   async goto() {
-    await this.page.goto('https://www.saucedemo.com');
+    await super.goto('/');
   }
 
   /** Fill credentials and click login */
