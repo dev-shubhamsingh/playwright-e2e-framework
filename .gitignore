@@ -23,6 +23,7 @@ k6-summary.json
 # TARS Mission Control brief (generated per run)
 tars-report.md
 tars-results.json
+tars-dashboard.html
 
 # Secrets & local config — never commit
 .env

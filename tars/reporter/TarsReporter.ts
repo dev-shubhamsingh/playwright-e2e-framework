@@ -36,7 +36,7 @@ interface TestRecord {
 const REPORT_FILE = 'tars-report.md';
 const RESULTS_FILE = 'tars-results.json';
 
-/** Machine-readable run summary, consumed by `tars quarantine` and CI. */
+/** Machine-readable run summary, consumed by `tars quarantine`, the dashboard, and CI. */
 export interface TarsResults {
   generatedAt: string;
   status: string;
@@ -46,11 +46,18 @@ export interface TarsResults {
   skipped: number;
   passRate: number;
   flakeRate: number;
+  durationMs: number;
   flaky: { project: string; title: string }[];
+  byProject: { name: string; count: number }[];
+  byTag: { name: string; count: number }[];
+  slowest: { title: string; project: string; durationMs: number }[];
 }
 
 export default class TarsReporter implements Reporter {
-  private records: TestRecord[] = [];
+  // Keyed by test id so retries overwrite rather than double-count: one record
+  // per test, holding its final attempt. Counting per attempt would inflate
+  // totals and miscount flaky/failed once retries are on.
+  private records = new Map<string, TestRecord>();
   private startedAt = 0;
 
   printsToStdio(): boolean {
@@ -63,7 +70,7 @@ export default class TarsReporter implements Reporter {
 
   onTestEnd(test: TestCase, result: TestResult): void {
     try {
-      this.records.push({
+      this.records.set(test.id, {
         title: test.title,
         project: test.titlePath()[1] || 'unknown',
         tags: test.tags ?? [],
@@ -97,13 +104,12 @@ export default class TarsReporter implements Reporter {
     console: string;
     data: TarsResults;
   } {
-    const total = this.records.length;
-    const passed = this.records.filter((r) => r.outcome === 'expected').length;
-    const failed = this.records.filter(
-      (r) => r.outcome === 'unexpected',
-    ).length;
-    const flaky = this.records.filter((r) => r.outcome === 'flaky');
-    const skipped = this.records.filter((r) => r.outcome === 'skipped').length;
+    const recs = [...this.records.values()];
+    const total = recs.length;
+    const passed = recs.filter((r) => r.outcome === 'expected').length;
+    const failed = recs.filter((r) => r.outcome === 'unexpected').length;
+    const flaky = recs.filter((r) => r.outcome === 'flaky');
+    const skipped = recs.filter((r) => r.outcome === 'skipped').length;
     const executed = total - skipped;
     const passRate = executed ? ((passed / executed) * 100).toFixed(1) : '0.0';
     const flakeRate = executed
@@ -111,7 +117,7 @@ export default class TarsReporter implements Reporter {
       : '0.00';
     const wallMs = Date.now() - this.startedAt;
 
-    const slowest = [...this.records]
+    const slowest = [...recs]
       .sort((a, b) => b.durationMs - a.durationMs)
       .slice(0, 5);
 
@@ -191,7 +197,18 @@ export default class TarsReporter implements Reporter {
       skipped,
       passRate: Number(passRate),
       flakeRate: Number(flakeRate),
+      durationMs: wallMs,
       flaky: flaky.map((r) => ({ project: r.project, title: r.title })),
+      byProject: [...byProject.entries()].map(([name, count]) => ({
+        name,
+        count,
+      })),
+      byTag: [...byTag.entries()].map(([name, count]) => ({ name, count })),
+      slowest: slowest.map((r) => ({
+        title: r.title,
+        project: r.project,
+        durationMs: r.durationMs,
+      })),
     };
 
     return { markdown: md, console: con, data };
@@ -199,7 +216,7 @@ export default class TarsReporter implements Reporter {
 
   private groupCounts(key: (r: TestRecord) => string): Map<string, number> {
     const map = new Map<string, number>();
-    for (const r of this.records) {
+    for (const r of this.records.values()) {
       map.set(key(r), (map.get(key(r)) ?? 0) + 1);
     }
     return map;
