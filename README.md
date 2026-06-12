@@ -1,21 +1,66 @@
-# Playwright Test Framework
+<div align="center">
 
-A modular, production-style test framework built with
-[Playwright](https://playwright.dev/) and TypeScript. It demonstrates the
-patterns real QA/SDET teams use across both **UI** and **API** testing: Page
-Object Model, resource clients, dependency-injected fixtures, authentication
-state reuse, schema-validated contracts, data-driven tests, typed configuration,
-and cross-browser execution — all behind enforced quality gates.
+# 🤖 TARS
 
-Two domains ship today:
+### Test Automation & Reliability System
 
-- **SauceDemo** ([saucedemo.com](https://www.saucedemo.com)) — UI e2e suite.
-- **DummyJSON** ([dummyjson.com](https://dummyjson.com)) — REST API integration
-  suite.
+**An autonomous quality-engineering platform: seven testing disciplines in one
+typed Playwright + TypeScript codebase, built and guarded by an AI principal-SDET.**
 
-The layout is intentionally modular: a reusable framework `core`, per-domain
-folders, and test-type subfolders, so new apps or test types slot in without
-touching existing code.
+[![CI](https://github.com/dev-shubhamsingh/playwright-e2e-framework/actions/workflows/playwright.yml/badge.svg)](https://github.com/dev-shubhamsingh/playwright-e2e-framework/actions/workflows/playwright.yml)
+[![Playwright](https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+
+</div>
+
+**TARS** is what happens when you encode a principal SDET's _judgment_ into a
+system. It spans the disciplines real quality teams own — **UI e2e, API
+integration, contract, performance, security, visual, and accessibility** — all
+strictly typed, all behind enforced CI gates. And it doesn't just run tests: a
+built-in engine analyzes every run for flake, selects the tests a change
+actually affects, and quarantines instability.
+
+Two real systems are exercised end to end:
+
+- **SauceDemo** ([saucedemo.com](https://www.saucedemo.com)) — UI e2e, visual,
+  and accessibility.
+- **DummyJSON** ([dummyjson.com](https://dummyjson.com)) — API integration,
+  contract, and performance.
+
+```mermaid
+flowchart TD
+    BRAIN["TARS engines: Mission Control - selection - quarantine"]:::brain
+    BRAIN --> CORE
+    subgraph CORE["core - framework"]
+        HTTP["ApiClient"]
+        UI["BasePage"]
+        CFG["env (zod)"]
+    end
+    CORE --> SAUCE & DUMMY
+    subgraph SAUCE["SauceDemo - UI"]
+        E2E["e2e"]
+        VIS["visual"]
+        A11Y["a11y"]
+    end
+    subgraph DUMMY["DummyJSON - API"]
+        API["integration"]
+        PACT["contract"]
+        PERF["performance"]
+    end
+    SAUCE & DUMMY --> CI["GitHub Actions: typecheck then parallel gated jobs"]
+    classDef brain fill:#7D64FF,stroke:#4B275F,color:#fff,font-weight:bold;
+```
+
+> ### 🤖 Meet TARS — the brain
+>
+> This isn't a test repo with a clever name. **[TARS](./tars)** is an autonomous
+> QE agent: governance rules that hold every change to a principal bar, plus
+> **engines that act** — a Mission Control reporter, test-impact selection, and
+> auto-quarantine. It even pushes back: it deferred a cargo-cult abstraction,
+> swapped a wrong test runner mid-build, and baselined a _real_ accessibility
+> bug it found instead of hiding it. **[→ See what TARS does](./tars)**
 
 ---
 

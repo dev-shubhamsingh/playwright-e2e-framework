@@ -1,7 +1,7 @@
 {
-  "name": "playwright-e2e",
+  "name": "tars",
   "version": "1.0.0",
-  "description": "Portfolio-quality Playwright E2E test suite in TypeScript",
+  "description": "TARS — an autonomous quality-engineering platform built on Playwright + TypeScript",
   "author": "Shubham Singh",
   "license": "MIT",
   "scripts": {
