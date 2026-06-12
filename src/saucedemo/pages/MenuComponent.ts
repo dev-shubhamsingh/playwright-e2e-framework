@@ -1,4 +1,5 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator } from '@playwright/test';
+import { BasePage } from '@core/ui';
 
 /**
  * MenuComponent — the hamburger side menu accessible from any page after login.
@@ -10,25 +11,23 @@ import { type Page, type Locator } from '@playwright/test';
  * - Logout         → /
  * - Reset App State → clears cart
  */
-export class MenuComponent {
-  // Locators defined as Properties
-  private readonly page: Page;
-  private readonly menuButton: Locator;
-  private readonly closeButton: Locator;
-  private readonly allItemsLink: Locator;
-  private readonly aboutLink: Locator;
-  private readonly logoutLink: Locator;
-  private readonly resetLink: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.menuButton = page.getByRole('button', { name: 'Open Menu' });
-    this.closeButton = page.getByRole('button', { name: 'Close Menu' });
-    this.allItemsLink = page.getByTestId('inventory-sidebar-link');
-    this.aboutLink = page.getByTestId('about-sidebar-link');
-    this.logoutLink = page.getByTestId('logout-sidebar-link');
-    this.resetLink = page.getByTestId('reset-sidebar-link');
-  }
+export class MenuComponent extends BasePage {
+  private readonly menuButton: Locator = this.page.getByRole('button', {
+    name: 'Open Menu',
+  });
+  private readonly closeButton: Locator = this.page.getByRole('button', {
+    name: 'Close Menu',
+  });
+  private readonly allItemsLink: Locator = this.page.getByTestId(
+    'inventory-sidebar-link',
+  );
+  private readonly aboutLink: Locator =
+    this.page.getByTestId('about-sidebar-link');
+  private readonly logoutLink: Locator = this.page.getByTestId(
+    'logout-sidebar-link',
+  );
+  private readonly resetLink: Locator =
+    this.page.getByTestId('reset-sidebar-link');
 
   // Actions as Methods
 
