@@ -1,4 +1,5 @@
 import { type Locator } from '@playwright/test';
+import { parsePrice } from '@shared/utils';
 import { SauceDemoPage } from './SauceDemoPage';
 
 export class InventoryPage extends SauceDemoPage {
@@ -35,8 +36,8 @@ export class InventoryPage extends SauceDemoPage {
     const rawPrices = await this.page
       .getByTestId('inventory-item-price')
       .allInnerTexts();
-    // rawPrices look like ['$9.99', '$15.99'] — strip the $ and parse
-    return rawPrices.map((p) => parseFloat(p.replace('$', '')));
+    // rawPrices look like ['$9.99', '$15.99']
+    return rawPrices.map((p) => parsePrice(p));
   }
 
   /** Add a product to cart by its exact name */

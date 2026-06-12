@@ -1,4 +1,5 @@
 import { type Locator } from '@playwright/test';
+import { parsePrice } from '@shared/utils';
 import { BasePage } from '@core/ui';
 
 export class ProductDetailPage extends BasePage {
@@ -38,7 +39,7 @@ export class ProductDetailPage extends BasePage {
   /** Get the displayed price as a number (strips the $ sign) */
   async getPrice(): Promise<number> {
     const raw = await this.productPrice.innerText();
-    return parseFloat(raw.replace('$', ''));
+    return parsePrice(raw);
   }
 
   /** Add the product to the cart */

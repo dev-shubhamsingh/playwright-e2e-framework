@@ -1,4 +1,5 @@
 import { type Locator } from '@playwright/test';
+import { parsePrice } from '@shared/utils';
 import { SauceDemoPage } from './SauceDemoPage';
 
 /**
@@ -30,24 +31,18 @@ export class CheckoutOverviewPage extends SauceDemoPage {
 
   /** Get the item subtotal as a number (e.g. 29.98) */
   async getItemTotal(): Promise<number> {
-    const raw = await this.itemTotal.innerText();
     // text looks like "Item total: $29.98"
-    const match = raw.match(/\$([0-9.]+)/);
-    return match ? parseFloat(match[1]) : 0;
+    return parsePrice(await this.itemTotal.innerText());
   }
 
   /** Get the tax amount as a number */
   async getTax(): Promise<number> {
-    const raw = await this.taxAmount.innerText();
-    const match = raw.match(/\$([0-9.]+)/);
-    return match ? parseFloat(match[1]) : 0;
+    return parsePrice(await this.taxAmount.innerText());
   }
 
   /** Get the order total as a number */
   async getOrderTotal(): Promise<number> {
-    const raw = await this.orderTotal.innerText();
-    const match = raw.match(/\$([0-9.]+)/);
-    return match ? parseFloat(match[1]) : 0;
+    return parsePrice(await this.orderTotal.innerText());
   }
 
   /** Get the payment information text */

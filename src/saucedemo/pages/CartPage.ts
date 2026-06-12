@@ -1,4 +1,5 @@
 import { type Locator } from '@playwright/test';
+import { parsePrice } from '@shared/utils';
 import { SauceDemoPage } from './SauceDemoPage';
 
 export class CartPage extends SauceDemoPage {
@@ -27,7 +28,7 @@ export class CartPage extends SauceDemoPage {
     const rawPrices = await this.page
       .getByTestId('inventory-item-price')
       .allInnerTexts();
-    return rawPrices.map((p) => parseFloat(p.replace('$', '')));
+    return rawPrices.map((p) => parsePrice(p));
   }
 
   /** Get the quantity of a specific item by its name */
