@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginationEnvelopeSchema } from './common.schema';
 
 /**
  * Response contracts for the DummyJSON `/products` endpoints.
@@ -6,7 +7,7 @@ import { z } from 'zod';
  * `productSchema` validates the fields the tests rely on; zod ignores the many
  * extra fields DummyJSON returns (dimensions, reviews, meta, ...). Responses
  * that use `?select=` return only a subset, so use `paginationEnvelopeSchema`
- * for those rather than the full product schema.
+ * (from `common.schema`) for those rather than the full product schema.
  */
 export const productSchema = z.object({
   id: z.number().int().positive(),
@@ -18,13 +19,6 @@ export const productSchema = z.object({
   stock: z.number().int().nonnegative(),
   thumbnail: z.string().url(),
   images: z.array(z.string().url()),
-});
-
-/** Shared pagination envelope returned by list and search endpoints. */
-export const paginationEnvelopeSchema = z.object({
-  total: z.number().int().nonnegative(),
-  skip: z.number().int().nonnegative(),
-  limit: z.number().int().nonnegative(),
 });
 
 /** Full product list: envelope + fully-shaped products. */

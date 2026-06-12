@@ -36,12 +36,6 @@ export const refreshResponseSchema = z.object({
   refreshToken: z.string().min(1),
 });
 
-/** Standard DummyJSON error envelope, e.g. { message: "Invalid credentials" }. */
-export const errorResponseSchema = z.object({
-  message: z.string().min(1),
-});
-
 export type AuthUser = z.infer<typeof authUserSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
-export type ErrorResponse = z.infer<typeof errorResponseSchema>;
