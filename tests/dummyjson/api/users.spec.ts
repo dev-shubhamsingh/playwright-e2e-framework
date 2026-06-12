@@ -17,19 +17,21 @@ import {
  * static values; DummyJSON does not persist writes, so tests assert on the
  * returned contract rather than re-fetching.
  */
-test.describe('Users API', () => {
-  test('lists users with a valid pagination envelope', async ({
-    usersClient,
-  }) => {
-    const response = await usersClient.list();
+test.describe('Users API', { tag: '@regression' }, () => {
+  test(
+    'lists users with a valid pagination envelope',
+    { tag: '@smoke' },
+    async ({ usersClient }) => {
+      const response = await usersClient.list();
 
-    expect(response.status()).toBe(200);
+      expect(response.status()).toBe(200);
 
-    const body = userListSchema.parse(await response.json());
-    expect(body.users.length).toBeGreaterThan(0);
-    expect(body.users.length).toBeLessThanOrEqual(body.limit);
-    expect(body.total).toBeGreaterThan(body.users.length);
-  });
+      const body = userListSchema.parse(await response.json());
+      expect(body.users.length).toBeGreaterThan(0);
+      expect(body.users.length).toBeLessThanOrEqual(body.limit);
+      expect(body.total).toBeGreaterThan(body.users.length);
+    },
+  );
 
   test('paginates with limit and skip', async ({ usersClient }) => {
     const limit = 5;

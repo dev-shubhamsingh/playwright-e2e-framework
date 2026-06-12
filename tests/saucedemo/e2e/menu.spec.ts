@@ -9,7 +9,7 @@ import { PRODUCTS } from '@saucedemo/data/products';
  *   🔗 All Items         — navigates back to inventory
  *   🚪 Logout            — returns to the login page
  */
-test.describe('Side Menu', () => {
+test.describe('Side Menu', { tag: '@regression' }, () => {
   test.describe('Reset App State', () => {
     test('clears items from the cart', async ({
       authenticatedPage,
@@ -43,17 +43,17 @@ test.describe('Side Menu', () => {
   });
 
   test.describe('Logout', () => {
-    test('returns the user to the login page', async ({
-      authenticatedPage,
-      menuComponent,
-      page,
-    }) => {
-      // Start from a logged-in page so the side menu is available.
-      expect(await authenticatedPage.getPageTitle()).toBe('Products');
+    test(
+      'returns the user to the login page',
+      { tag: '@smoke' },
+      async ({ authenticatedPage, menuComponent, page }) => {
+        // Start from a logged-in page so the side menu is available.
+        expect(await authenticatedPage.getPageTitle()).toBe('Products');
 
-      await menuComponent.logout();
-      await expect(page).toHaveURL('https://www.saucedemo.com/');
-      await expect(page.getByTestId('login-button')).toBeVisible();
-    });
+        await menuComponent.logout();
+        await expect(page).toHaveURL('https://www.saucedemo.com/');
+        await expect(page.getByTestId('login-button')).toBeVisible();
+      },
+    );
   });
 });

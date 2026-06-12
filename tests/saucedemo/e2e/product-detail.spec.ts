@@ -9,16 +9,20 @@ import { PRODUCTS } from '@saucedemo/data/products';
  *   🛒 Add / remove      — button toggles and cart badge updates
  *   🔙 Navigation        — back button returns to inventory
  */
-test.describe('Product Detail', () => {
+test.describe('Product Detail', { tag: '@regression' }, () => {
   // Open the backpack detail page before each test
   test.beforeEach(async ({ authenticatedPage }) => {
     await authenticatedPage.openProductByName(PRODUCTS.backpack.name);
   });
 
   test.describe('Content', () => {
-    test('shows the correct product name', async ({ productDetailPage }) => {
-      expect(await productDetailPage.getName()).toBe(PRODUCTS.backpack.name);
-    });
+    test(
+      'shows the correct product name',
+      { tag: '@smoke' },
+      async ({ productDetailPage }) => {
+        expect(await productDetailPage.getName()).toBe(PRODUCTS.backpack.name);
+      },
+    );
 
     test('shows the correct product price', async ({ productDetailPage }) => {
       expect(await productDetailPage.getPrice()).toBe(PRODUCTS.backpack.price);

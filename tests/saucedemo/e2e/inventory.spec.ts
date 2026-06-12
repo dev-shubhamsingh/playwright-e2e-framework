@@ -13,11 +13,15 @@ import { PRODUCTS, PRODUCT_COUNT } from '@saucedemo/data/products';
  *   🛒 Add / remove cart  — badge updates correctly
  *   🔗 Navigation         — open product detail
  */
-test.describe('Inventory', () => {
+test.describe('Inventory', { tag: '@regression' }, () => {
   test.describe('Product display', () => {
-    test('displays all six products', async ({ authenticatedPage }) => {
-      expect(await authenticatedPage.getProductCount()).toBe(PRODUCT_COUNT);
-    });
+    test(
+      'displays all six products',
+      { tag: '@smoke' },
+      async ({ authenticatedPage }) => {
+        expect(await authenticatedPage.getProductCount()).toBe(PRODUCT_COUNT);
+      },
+    );
 
     test('page title reads "Products"', async ({ authenticatedPage }) => {
       expect(await authenticatedPage.getPageTitle()).toBe('Products');
@@ -74,12 +78,14 @@ test.describe('Inventory', () => {
   });
 
   test.describe('Add and remove from cart', () => {
-    test('adding a product increments the cart badge', async ({
-      authenticatedPage,
-    }) => {
-      await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
-      expect(await authenticatedPage.getCartCount()).toBe(1);
-    });
+    test(
+      'adding a product increments the cart badge',
+      { tag: '@smoke' },
+      async ({ authenticatedPage }) => {
+        await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
+        expect(await authenticatedPage.getCartCount()).toBe(1);
+      },
+    );
 
     test('adding multiple products updates the badge count', async ({
       authenticatedPage,

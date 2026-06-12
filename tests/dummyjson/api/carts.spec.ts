@@ -14,19 +14,21 @@ import {
  * does not persist writes, so write tests assert on the returned contract and
  * computed totals rather than re-fetching.
  */
-test.describe('Carts API', () => {
-  test('lists carts with a valid pagination envelope', async ({
-    cartsClient,
-  }) => {
-    const response = await cartsClient.list();
+test.describe('Carts API', { tag: '@regression' }, () => {
+  test(
+    'lists carts with a valid pagination envelope',
+    { tag: '@smoke' },
+    async ({ cartsClient }) => {
+      const response = await cartsClient.list();
 
-    expect(response.status()).toBe(200);
+      expect(response.status()).toBe(200);
 
-    const body = cartListSchema.parse(await response.json());
-    expect(body.carts.length).toBeGreaterThan(0);
-    expect(body.carts.length).toBeLessThanOrEqual(body.limit);
-    expect(body.total).toBeGreaterThanOrEqual(body.carts.length);
-  });
+      const body = cartListSchema.parse(await response.json());
+      expect(body.carts.length).toBeGreaterThan(0);
+      expect(body.carts.length).toBeLessThanOrEqual(body.limit);
+      expect(body.total).toBeGreaterThanOrEqual(body.carts.length);
+    },
+  );
 
   test('paginates with limit and skip', async ({ cartsClient }) => {
     const limit = 3;

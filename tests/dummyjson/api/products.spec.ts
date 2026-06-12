@@ -13,19 +13,21 @@ import {
  * retrieval, and a 404 negative case. Bodies are validated against zod schemas
  * alongside status-code and value assertions.
  */
-test.describe('Products API', () => {
-  test('lists products with a valid pagination envelope', async ({
-    productsClient,
-  }) => {
-    const response = await productsClient.list();
+test.describe('Products API', { tag: '@regression' }, () => {
+  test(
+    'lists products with a valid pagination envelope',
+    { tag: '@smoke' },
+    async ({ productsClient }) => {
+      const response = await productsClient.list();
 
-    expect(response.status()).toBe(200);
+      expect(response.status()).toBe(200);
 
-    const body = productListSchema.parse(await response.json());
-    expect(body.products.length).toBeGreaterThan(0);
-    expect(body.products.length).toBeLessThanOrEqual(body.limit);
-    expect(body.total).toBeGreaterThan(body.products.length);
-  });
+      const body = productListSchema.parse(await response.json());
+      expect(body.products.length).toBeGreaterThan(0);
+      expect(body.products.length).toBeLessThanOrEqual(body.limit);
+      expect(body.total).toBeGreaterThan(body.products.length);
+    },
+  );
 
   test('paginates with limit and skip', async ({ productsClient }) => {
     const limit = 5;

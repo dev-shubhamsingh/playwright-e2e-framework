@@ -13,19 +13,21 @@ import {
  * /auth/me endpoint both with and without a token. Response shapes are
  * validated against zod schemas in addition to status-code and value checks.
  */
-test.describe('Auth API', () => {
-  test('logs in with valid credentials and returns tokens', async ({
-    authClient,
-  }) => {
-    const response = await authClient.login(DUMMYJSON_USER);
+test.describe('Auth API', { tag: '@regression' }, () => {
+  test(
+    'logs in with valid credentials and returns tokens',
+    { tag: '@smoke' },
+    async ({ authClient }) => {
+      const response = await authClient.login(DUMMYJSON_USER);
 
-    expect(response.status()).toBe(200);
+      expect(response.status()).toBe(200);
 
-    const body = loginResponseSchema.parse(await response.json());
-    expect(body.username).toBe(DUMMYJSON_USER.username);
-    expect(body.accessToken.length).toBeGreaterThan(0);
-    expect(body.refreshToken.length).toBeGreaterThan(0);
-  });
+      const body = loginResponseSchema.parse(await response.json());
+      expect(body.username).toBe(DUMMYJSON_USER.username);
+      expect(body.accessToken.length).toBeGreaterThan(0);
+      expect(body.refreshToken.length).toBeGreaterThan(0);
+    },
+  );
 
   test('rejects invalid credentials with 400', async ({ authClient }) => {
     const response = await authClient.login({

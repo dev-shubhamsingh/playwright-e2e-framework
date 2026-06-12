@@ -19,52 +19,56 @@ import { sumPrices, roundTo } from '@shared/utils/helpers';
  *   ❌ Validation        — missing fields are rejected with the right errors
  *   🔙 Cancel / back     — user can abandon checkout at each step
  */
-test.describe('Checkout', () => {
+test.describe('Checkout', { tag: '@regression' }, () => {
   test.describe('Happy path', () => {
-    test('completes a full single-item order', async ({
-      authenticatedPage,
-      cartPage,
-      checkoutInfoPage,
-      checkoutOverviewPage,
-      checkoutCompletePage,
-    }) => {
-      const customer = TestDataFactory.buildCheckoutInfo();
+    test(
+      'completes a full single-item order',
+      { tag: '@smoke' },
+      async ({
+        authenticatedPage,
+        cartPage,
+        checkoutInfoPage,
+        checkoutOverviewPage,
+        checkoutCompletePage,
+      }) => {
+        const customer = TestDataFactory.buildCheckoutInfo();
 
-      await test.step('Add item and open cart', async () => {
-        await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
-        await authenticatedPage.goToCart();
-        expect(await cartPage.getItemCount()).toBe(1);
-      });
+        await test.step('Add item and open cart', async () => {
+          await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
+          await authenticatedPage.goToCart();
+          expect(await cartPage.getItemCount()).toBe(1);
+        });
 
-      await test.step('Proceed through customer info', async () => {
-        await cartPage.checkout();
-        await checkoutInfoPage.fillAndContinue(
-          customer.firstName,
-          customer.lastName,
-          customer.postalCode,
-        );
-      });
+        await test.step('Proceed through customer info', async () => {
+          await cartPage.checkout();
+          await checkoutInfoPage.fillAndContinue(
+            customer.firstName,
+            customer.lastName,
+            customer.postalCode,
+          );
+        });
 
-      await test.step('Verify order overview and place order', async () => {
-        expect(await checkoutOverviewPage.getPageTitle()).toBe(
-          'Checkout: Overview',
-        );
-        expect(await checkoutOverviewPage.getItemCount()).toBe(1);
-        await checkoutOverviewPage.finish();
-      });
+        await test.step('Verify order overview and place order', async () => {
+          expect(await checkoutOverviewPage.getPageTitle()).toBe(
+            'Checkout: Overview',
+          );
+          expect(await checkoutOverviewPage.getItemCount()).toBe(1);
+          await checkoutOverviewPage.finish();
+        });
 
-      await test.step('Verify order confirmation', async () => {
-        expect(await checkoutCompletePage.getPageTitle()).toBe(
-          'Checkout: Complete!',
-        );
-        expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
-          'Thank you for your order',
-        );
-        expect(await checkoutCompletePage.isConfirmationImageVisible()).toBe(
-          true,
-        );
-      });
-    });
+        await test.step('Verify order confirmation', async () => {
+          expect(await checkoutCompletePage.getPageTitle()).toBe(
+            'Checkout: Complete!',
+          );
+          expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
+            'Thank you for your order',
+          );
+          expect(await checkoutCompletePage.isConfirmationImageVisible()).toBe(
+            true,
+          );
+        });
+      },
+    );
 
     test('completes a multi-item order', async ({
       authenticatedPage,

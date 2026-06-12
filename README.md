@@ -131,6 +131,10 @@ npm test
 # API suite only (no browser)
 npm run test:api
 
+# Tag-filtered suites
+npm run test:smoke        # fast critical-path subset (@smoke)
+npm run test:regression   # full regression set (@regression)
+
 # UI: headed / interactive / debug
 npm run test:headed
 npm run test:ui
@@ -146,6 +150,21 @@ npx playwright test tests/dummyjson/api/products.spec.ts
 
 # View the HTML report after a run
 npm run report
+```
+
+### Test tags
+
+Tests are tagged so suites can be filtered with `--grep`:
+
+- `@smoke` — one representative happy-path test per feature area (UI + API).
+  A fast confidence check.
+- `@regression` — the full suite. `@smoke` is a strict subset, so smoke tests
+  carry both tags.
+
+```bash
+npx playwright test --grep @smoke               # smoke only
+npx playwright test --grep @regression          # everything
+npx playwright test --grep "@smoke" --project=api   # compose with projects
 ```
 
 ### Quality gates

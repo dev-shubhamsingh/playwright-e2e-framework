@@ -10,21 +10,22 @@ import { PRODUCTS } from '@saucedemo/data/products';
  *   🗑️ Remove        — items can be removed from within the cart
  *   🔀 Navigation    — continue shopping / proceed to checkout
  */
-test.describe('Cart', () => {
+test.describe('Cart', { tag: '@regression' }, () => {
   test.describe('Contents', () => {
-    test('items added on inventory appear in the cart', async ({
-      authenticatedPage,
-      cartPage,
-    }) => {
-      await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
-      await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
-      await authenticatedPage.goToCart();
+    test(
+      'items added on inventory appear in the cart',
+      { tag: '@smoke' },
+      async ({ authenticatedPage, cartPage }) => {
+        await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
+        await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
+        await authenticatedPage.goToCart();
 
-      expect(await cartPage.getItemCount()).toBe(2);
-      const names = await cartPage.getItemNames();
-      expect(names).toContain(PRODUCTS.backpack.name);
-      expect(names).toContain(PRODUCTS.bikeLight.name);
-    });
+        expect(await cartPage.getItemCount()).toBe(2);
+        const names = await cartPage.getItemNames();
+        expect(names).toContain(PRODUCTS.backpack.name);
+        expect(names).toContain(PRODUCTS.bikeLight.name);
+      },
+    );
 
     test('cart page title reads "Your Cart"', async ({
       authenticatedPage,

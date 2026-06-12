@@ -10,7 +10,7 @@ import { USERS, INVALID_CREDENTIALS } from '@saucedemo/data/users';
  *   🔒 Locked out — specific error for blocked accounts
  *   🐢 Performance — slow login still lands on inventory
  */
-test.describe('Login', () => {
+test.describe('Login', { tag: '@regression' }, () => {
   // Navigate to login page before every test in this file
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.goto();
@@ -20,19 +20,23 @@ test.describe('Login', () => {
   // POSITIVE TESTS
   // ─────────────────────────────────────────────
   test.describe('Valid credentials', () => {
-    test('standard user can log in and reach inventory', async ({
-      loginPage,
-      page,
-    }) => {
-      await test.step('Enter credentials', async () => {
-        await loginPage.login(USERS.standard.username, USERS.standard.password);
-      });
+    test(
+      'standard user can log in and reach inventory',
+      { tag: '@smoke' },
+      async ({ loginPage, page }) => {
+        await test.step('Enter credentials', async () => {
+          await loginPage.login(
+            USERS.standard.username,
+            USERS.standard.password,
+          );
+        });
 
-      await test.step('Verify redirect to inventory page', async () => {
-        await expect(page).toHaveURL(/inventory/);
-        await expect(page.getByTestId('title')).toHaveText('Products');
-      });
-    });
+        await test.step('Verify redirect to inventory page', async () => {
+          await expect(page).toHaveURL(/inventory/);
+          await expect(page.getByTestId('title')).toHaveText('Products');
+        });
+      },
+    );
 
     test('performance glitch user logs in successfully (within timeout)', async ({
       loginPage,
