@@ -2,6 +2,7 @@ import { test as base, APIRequestContext } from '@playwright/test';
 import { AuthClient } from '../clients/AuthClient';
 import { ProductsClient } from '../clients/ProductsClient';
 import { CartsClient } from '../clients/CartsClient';
+import { UsersClient } from '../clients/UsersClient';
 import { DUMMYJSON_BASE_URL, DUMMYJSON_USER } from '../config';
 import { loginResponseSchema } from '../schemas';
 
@@ -23,6 +24,7 @@ type ApiTestFixtures = {
   authClient: AuthClient;
   productsClient: ProductsClient;
   cartsClient: CartsClient;
+  usersClient: UsersClient;
   authedRequest: APIRequestContext;
 };
 
@@ -34,6 +36,7 @@ type ApiTestFixtures = {
  *                   Use it to drive /auth/* directly (login, bad creds, etc.).
  *   productsClient — anonymous ProductsClient for the public /products endpoints.
  *   cartsClient   — anonymous CartsClient for the /carts endpoints.
+ *   usersClient   — anonymous UsersClient for the /users endpoints.
  *   authTokens    — worker-scoped. Logs in once per worker and shares the same
  *                   access/refresh tokens with every test in that worker,
  *                   avoiding a redundant login per test.
@@ -87,6 +90,10 @@ export const test = base.extend<ApiTestFixtures, ApiWorkerFixtures>({
 
   cartsClient: async ({ request }, use) => {
     await use(new CartsClient(request));
+  },
+
+  usersClient: async ({ request }, use) => {
+    await use(new UsersClient(request));
   },
 
   authedRequest: async ({ playwright, authTokens }, use) => {
