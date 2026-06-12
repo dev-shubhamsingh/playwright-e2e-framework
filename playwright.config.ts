@@ -5,6 +5,17 @@ import { env } from './src/core/config/env';
 // Shared path to the saved authenticated session
 const STORAGE_STATE = path.join(process.cwd(), '.auth', 'standard_user.json');
 
+// Specs the cross-browser UI projects must NOT run: the login flow (needs a
+// clean session), the setup file, API specs, and the specialised visual /
+// accessibility suites (each has its own dedicated, Chromium-only project).
+const UI_TEST_IGNORE = [
+  '**/login.spec.ts',
+  '**/auth.setup.ts',
+  '**/dummyjson/**',
+  '**/visual/**',
+  '**/a11y/**',
+];
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -69,7 +80,7 @@ export default defineConfig({
         storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
+      testIgnore: UI_TEST_IGNORE,
     },
 
     // ── Cross-browser: authenticated only ─────────────────────────────────
@@ -77,13 +88,13 @@ export default defineConfig({
       name: 'firefox',
       use: { ...devices['Desktop Firefox'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
+      testIgnore: UI_TEST_IGNORE,
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
+      testIgnore: UI_TEST_IGNORE,
     },
 
     // ── Mobile ────────────────────────────────────────────────────────────
@@ -91,13 +102,27 @@ export default defineConfig({
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
+      testIgnore: UI_TEST_IGNORE,
     },
     {
       name: 'mobile-safari',
       use: { ...devices['iPhone 13'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      testIgnore: ['**/login.spec.ts', '**/auth.setup.ts', '**/dummyjson/**'],
+      testIgnore: UI_TEST_IGNORE,
+    },
+
+    // ── Visual regression (Chromium only) ─────────────────────────────────
+    // Pixel snapshots are OS/browser-specific, so visual runs on a single
+    // engine. Baselines live next to the specs in __screenshots__ /
+    // *-snapshots and are committed; regenerate with `npm run test:visual:update`.
+    {
+      name: 'visual',
+      testDir: './tests/saucedemo/visual',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: STORAGE_STATE,
+      },
+      dependencies: ['setup'],
     },
   ],
 

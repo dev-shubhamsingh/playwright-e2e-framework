@@ -10,6 +10,8 @@
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
     "test:contract": "jest --config jest.config.js",
+    "test:visual": "playwright test --project=visual",
+    "test:visual:update": "playwright test --project=visual --update-snapshots",
     "perf:load": "k6 run tests/dummyjson/performance/load.ts",
     "perf:stress": "k6 run tests/dummyjson/performance/stress.ts",
     "perf:spike": "k6 run tests/dummyjson/performance/spike.ts",

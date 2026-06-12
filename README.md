@@ -371,6 +371,30 @@ Deliberate choices:
 
 ---
 
+## Visual Regression — Playwright snapshots
+
+Pixel snapshots of stable SauceDemo pages (`tests/saucedemo/visual/`) using
+Playwright's built-in `toHaveScreenshot()` — no extra dependencies. Runs in a
+dedicated **`visual`** project (Chromium only) with animations disabled and a
+small `maxDiffPixelRatio` tolerance.
+
+```bash
+npm run test:visual          # compare against committed baselines
+npm run test:visual:update   # regenerate baselines after an intended change
+```
+
+Snapshots cover the inventory, product-detail, and empty-cart pages. Baselines
+are committed next to the spec.
+
+> **Platform note:** pixel baselines are OS-specific (Playwright names them
+> `…-visual-darwin.png`, `…-visual-linux.png`, etc.). The committed baselines
+> here are for local macOS runs. Running visual in CI (Linux) needs Linux
+> baselines, generated via the Playwright Docker image
+> (`mcr.microsoft.com/playwright`) — so the visual suite is intentionally **not**
+> part of the gating CI to avoid cross-platform false failures.
+
+---
+
 ## TARS
 
 This project is built alongside **TARS** (Test Automation & Reliability System),
@@ -411,7 +435,7 @@ while building on the patterns already in place.
 | 5     | Contract testing (Pact, consumer-driven)                                 | ✅ Done    |
 | 6     | Performance testing — load, stress, spike, soak (k6)                     | ✅ Done    |
 | 7     | Security testing — baseline scan (OWASP ZAP)                             | ✅ Done    |
-| 8     | Visual regression testing (Playwright snapshots)                         | 📋 Planned |
+| 8     | Visual regression testing (Playwright snapshots)                         | ✅ Done    |
 | 9     | Accessibility testing (axe-core)                                         | 📋 Planned |
 
 ### Phase 5 — Contract testing (Pact)
