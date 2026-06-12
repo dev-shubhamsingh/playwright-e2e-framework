@@ -24,6 +24,6 @@
       "@shared/*": ["./src/shared/*"]
     }
   },
-  "include": ["src/**/*", "tests/**/*", "playwright.config.ts"],
+  "include": ["src/**/*", "tests/**/*", "tars/**/*", "playwright.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

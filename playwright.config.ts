@@ -27,6 +27,8 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['list'],
     ['allure-playwright', { outputFolder: 'allure-results', detail: true }],
+    // TARS Mission Control — quality intelligence brief on every run.
+    ['./tars/reporter/TarsReporter.ts'],
   ],
 
   // Shared settings inherited by all projects

@@ -20,6 +20,9 @@ pacts/
 # k6 performance output
 k6-summary.json
 
+# TARS Mission Control brief (generated per run)
+tars-report.md
+
 # Secrets & local config — never commit
 .env
 .env.local
