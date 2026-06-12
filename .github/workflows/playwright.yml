@@ -93,6 +93,31 @@ jobs:
           path: allure-results/
           retention-days: 14
 
+  # ── Contract suite (Pact, Jest) ───────────────────────────────────────────
+  test-contract:
+    name: Contract — Pact
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Run Pact consumer contract suite
+        run: npm run test:contract
+
+      - name: Upload pact files
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: pacts
+          path: pacts/
+          retention-days: 14
+
   # ── Cross-browser matrix: scheduled + manual only ─────────────────────────
   cross-browser:
     name: Cross-browser (${{ matrix.project }})

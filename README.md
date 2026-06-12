@@ -194,15 +194,17 @@ GitHub Actions (`.github/workflows/playwright.yml`) runs tests in three tiers:
 **`typecheck` — every push / PR:** runs first, blocks all other jobs. Fast gate
 that prevents broken types from wasting browser minutes.
 
-**`test-ui` and `test-api` — every push / PR, run in parallel after `typecheck`:**
-the two required jobs that must stay green to merge. Each has its own timeout,
-Chromium-only install, and uploads both a Playwright HTML report and Allure
-result files as separate artifacts (retained 14 days).
+**`test-ui`, `test-api`, and `test-contract` — every push / PR, run in parallel
+after `typecheck`:** the required jobs that must stay green to merge. Each has
+its own timeout and Chromium-only install where needed; UI and API upload a
+Playwright HTML report and Allure results, and the contract job uploads the
+generated pact files — all as separate artifacts (retained 14 days).
 
-| Job        | Projects                 | Timeout |
-| ---------- | ------------------------ | ------- |
-| `test-ui`  | `login`, `authenticated` | 20 min  |
-| `test-api` | `api`                    | 10 min  |
+| Job             | Runs                     | Timeout |
+| --------------- | ------------------------ | ------- |
+| `test-ui`       | `login`, `authenticated` | 20 min  |
+| `test-api`      | `api`                    | 10 min  |
+| `test-contract` | Pact suite (Jest)        | 10 min  |
 
 **`cross-browser` matrix — nightly + `workflow_dispatch` only:**
 Firefox, WebKit, mobile-chrome, mobile-safari — one job per browser,
