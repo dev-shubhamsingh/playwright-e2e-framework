@@ -165,17 +165,21 @@ and Prettier before each commit.
 
 ## Continuous Integration
 
-A GitHub Actions workflow (`.github/workflows/playwright.yml`) runs the full
-suite on every push and pull request to `main`:
+GitHub Actions (`.github/workflows/playwright.yml`) runs tests in two tiers:
 
-1. Checks out the repo and sets up Node 20 with npm caching.
-2. Installs dependencies (`npm ci`) and Playwright browsers
-   (`npx playwright install --with-deps`).
-3. Type-checks (`tsc --noEmit`), then runs `npx playwright test`.
-4. Uploads the HTML report as a build artifact (retained 14 days), even if the
-   run fails.
+**Required gate — every push / PR to `main`:** a fast, reliable `Chromium + API`
+job. It installs Chromium only, type-checks (`tsc --noEmit`), then runs the
+`login`, `authenticated`, and `api` projects. This is the job that must stay
+green to merge.
 
-CI behaviour is driven by the `CI` env var inside `playwright.config.ts`:
+**Cross-browser matrix — nightly + on demand:** a separate job (Firefox, WebKit,
+mobile-chrome, mobile-safari) that runs on a schedule and via
+`workflow_dispatch`. It is kept out of the PR loop because WebKit/mobile are
+currently flaky on CI runners, so cross-browser coverage is preserved without
+gating merges. Each tier uploads its HTML report as an artifact (retained 14
+days).
+
+CI behaviour is also driven by the `CI` env var inside `playwright.config.ts`:
 `forbidOnly` is enforced, failed tests retry twice, and workers drop to one for
 deterministic, low-noise runs.
 

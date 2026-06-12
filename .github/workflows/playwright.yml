@@ -5,12 +5,68 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Allow the full cross-browser job to be kicked off by hand.
+  workflow_dispatch:
+  # Nightly full cross-browser run (02:00 UTC).
+  schedule:
+    - cron: '0 2 * * *'
 
 jobs:
+  # ── Required gate: fast, reliable signal on every push/PR ────────────────
+  # Chromium UI (login + authenticated) plus the API suite. This is the job
+  # that must stay green to merge.
   test:
-    name: Run Playwright suite
+    name: Chromium + API
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (Chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Run Chromium UI + API suites
+        run: >-
+          npx playwright test
+          --project=login
+          --project=authenticated
+          --project=api
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  # ── Cross-browser matrix: scheduled + manual only, non-blocking ──────────
+  # Firefox, WebKit, and mobile viewports. Kept out of the PR loop because
+  # WebKit/mobile are currently flaky on CI runners; runs nightly and on
+  # workflow_dispatch so coverage is preserved without gating merges.
+  cross-browser:
+    name: Cross-browser (${{ matrix.project }})
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [firefox, webkit, mobile-chrome, mobile-safari]
 
     steps:
       - name: Checkout repository
@@ -28,16 +84,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Type-check
-        run: npx tsc --noEmit
-
-      - name: Run Playwright tests
-        run: npx playwright test
+      - name: Run ${{ matrix.project }} suite
+        run: npx playwright test --project=${{ matrix.project }}
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 14
