@@ -17,6 +17,9 @@ allure-report/
 # Pact generated contract files
 pacts/
 
+# k6 performance output
+k6-summary.json
+
 # Secrets & local config — never commit
 .env
 .env.local

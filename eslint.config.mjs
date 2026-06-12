@@ -40,11 +40,12 @@ export default tseslint.config(
   },
 
   // Playwright best-practice rules, scoped to test + setup files.
-  // The Pact contract suite runs under Jest, not Playwright — exclude it.
+  // The Pact contract suite (Jest) and k6 performance scripts run under their
+  // own runtimes — exclude both from Playwright rules.
   {
     ...playwright.configs['flat/recommended'],
     files: ['tests/**/*.ts', '**/*.setup.ts'],
-    ignores: ['tests/dummyjson/contract/**'],
+    ignores: ['tests/dummyjson/contract/**', 'tests/dummyjson/performance/**'],
   },
 
   // Setup files perform authentication/state setup, not assertions.

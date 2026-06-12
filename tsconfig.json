@@ -8,6 +8,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    // This is a test project — nothing is compiled to dist; every runner
+    // (Playwright, ts-jest, k6) transpiles on its own. noEmit reflects that
+    // and unlocks allowImportingTsExtensions, which the k6 scripts need since
+    // k6's module loader requires explicit .ts extensions on local imports.
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "outDir": "./dist",
     "rootDir": ".",
     "paths": {

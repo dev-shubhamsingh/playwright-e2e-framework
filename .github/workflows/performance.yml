@@ -1,0 +1,42 @@
+name: Performance (k6)
+
+# Manual-trigger only. Performance runs are not gated on PRs, and DummyJSON is a
+# shared public API — so we never run these on a schedule or hammer it
+# automatically. Pick which test type to run when dispatching.
+on:
+  workflow_dispatch:
+    inputs:
+      test:
+        description: 'Which k6 test to run'
+        type: choice
+        default: load
+        options:
+          - load
+          - stress
+          - spike
+          - soak
+
+jobs:
+  k6:
+    name: k6 — ${{ inputs.test }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 ${{ inputs.test }} test
+        uses: grafana/run-k6-action@v1
+        with:
+          path: tests/dummyjson/performance/${{ inputs.test }}.ts
+          flags: --summary-export=k6-summary.json
+
+      - name: Upload k6 summary
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: k6-summary-${{ inputs.test }}
+          path: k6-summary.json
+          retention-days: 14

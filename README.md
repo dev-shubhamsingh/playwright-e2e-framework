@@ -313,6 +313,40 @@ npm run test:contract
 
 ---
 
+## Performance Testing — k6
+
+Load, stress, spike, and soak tests (`tests/dummyjson/performance/`) written in
+TypeScript and run with [k6](https://grafana.com/docs/k6/) (v0.57+ runs `.ts`
+natively). Shared thresholds — p95 < 500ms, error rate < 1% — make a breached
+budget fail the run, so the scripts double as CI gates.
+
+```bash
+npm run perf:load     # baseline sustained load
+npm run perf:stress   # ramp beyond peak to find the breaking point
+npm run perf:spike    # sudden burst + recovery
+npm run perf:soak     # sustained load over time (leaks, latency creep)
+```
+
+Virtual-user counts default low and are env-overridable (DummyJSON is a shared
+public API — be a good neighbour):
+
+```bash
+k6 run -e PEAK_VUS=200 tests/dummyjson/performance/stress.ts
+```
+
+| Test   | Profile                            | Thresholds               |
+| ------ | ---------------------------------- | ------------------------ |
+| load   | ramp to 20 VUs, hold 1m, ramp down | p95 < 500ms, errors < 1% |
+| stress | ramp past peak (default 60 VUs)    | p95 < 2s, errors < 15%   |
+| spike  | burst to 100 VUs, then recover     | p95 < 3s, errors < 20%   |
+| soak   | 20 VUs held over a long window     | p95 < 500ms, errors < 1% |
+
+A manual-dispatch GitHub Actions workflow (`performance.yml`) runs a chosen test
+via the official k6 actions and uploads the summary — never scheduled, never
+gating PRs.
+
+---
+
 ## TARS
 
 This project is built alongside **TARS** (Test Automation & Reliability System),
@@ -332,6 +366,7 @@ or reviewing tests.
 - dotenv (environment config)
 - Allure (rich test reporting via allure-playwright)
 - Pact (`@pact-foundation/pact`) + Jest (consumer contract testing)
+- k6 (performance: load, stress, spike, soak — TypeScript scripts)
 - ESLint + Prettier + husky + lint-staged (quality gates)
 
 ---
@@ -349,7 +384,7 @@ while building on the patterns already in place.
 | 3     | Base-page abstraction (`@core/ui`) + DRY page objects                    | ✅ Done    |
 | 4     | Allure reporting + CI api/ui job split                                   | ✅ Done    |
 | 5     | Contract testing (Pact, consumer-driven)                                 | ✅ Done    |
-| 6     | Performance testing — load, stress, spike, soak (k6)                     | 📋 Planned |
+| 6     | Performance testing — load, stress, spike, soak (k6)                     | ✅ Done    |
 | 7     | Security testing — baseline scan (OWASP ZAP)                             | 📋 Planned |
 | 8     | Visual regression testing (Playwright snapshots)                         | 📋 Planned |
 | 9     | Accessibility testing (axe-core)                                         | 📋 Planned |
