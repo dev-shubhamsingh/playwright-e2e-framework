@@ -40,9 +40,11 @@ export default tseslint.config(
   },
 
   // Playwright best-practice rules, scoped to test + setup files.
+  // The Pact contract suite runs under Jest, not Playwright — exclude it.
   {
     ...playwright.configs['flat/recommended'],
     files: ['tests/**/*.ts', '**/*.setup.ts'],
+    ignores: ['tests/dummyjson/contract/**'],
   },
 
   // Setup files perform authentication/state setup, not assertions.
@@ -51,6 +53,12 @@ export default tseslint.config(
     rules: {
       'playwright/expect-expect': 'off',
     },
+  },
+
+  // CommonJS config + stub files (module.exports / require).
+  {
+    files: ['jest.config.js', 'tests/**/stubs/**/*.js'],
+    languageOptions: { sourceType: 'commonjs' },
   },
 
   prettier,

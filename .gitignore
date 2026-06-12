@@ -14,6 +14,9 @@ playwright/.cache/
 allure-results/
 allure-report/
 
+# Pact generated contract files
+pacts/
+
 # Secrets & local config — never commit
 .env
 .env.local

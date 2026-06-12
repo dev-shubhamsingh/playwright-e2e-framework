@@ -285,6 +285,32 @@ re-fetching.
 
 ---
 
+## Contract Testing — Pact
+
+Consumer-driven contract tests (`tests/dummyjson/contract/`) use
+[Pact](https://docs.pact.io/) to capture what this suite (consumer
+`playwright-e2e`) expects from DummyJSON (provider `DummyJSON`). Each
+interaction runs against Pact's mock server and writes a versioned contract to
+`pacts/` (gitignored) that a provider team could verify independently.
+
+Pact complements zod rather than replacing it: zod validates response shape at
+runtime inside integration tests; Pact produces a shareable, versioned contract
+as a separate cross-team safety net.
+
+These specs run under **Jest** (the runner the Pact ecosystem is built around),
+kept isolated from the Playwright runner:
+
+```bash
+npm run test:contract
+```
+
+| Area     | Contract interactions                                                   |
+| -------- | ----------------------------------------------------------------------- |
+| Auth     | login success, invalid credentials (400), `/auth/me` with/without token |
+| Products | list envelope, single by id, 404 not-found, search                      |
+
+---
+
 ## TARS
 
 This project is built alongside **TARS** (Test Automation & Reliability System),
@@ -303,6 +329,7 @@ or reviewing tests.
 - Faker (test data generation)
 - dotenv (environment config)
 - Allure (rich test reporting via allure-playwright)
+- Pact (`@pact-foundation/pact`) + Jest (consumer contract testing)
 - ESLint + Prettier + husky + lint-staged (quality gates)
 
 ---
@@ -312,18 +339,18 @@ or reviewing tests.
 The framework is intentionally phased — each phase adds a new testing discipline
 while building on the patterns already in place.
 
-| Phase | Discipline                                                               | Status         |
-| ----- | ------------------------------------------------------------------------ | -------------- |
-| 0     | Quality gates (ESLint, Prettier, husky, typed env)                       | ✅ Done        |
-| 1     | API integration (core HTTP client + DummyJSON auth/products/carts/users) | ✅ Done        |
-| 2     | Test tagging (`@smoke` / `@regression`)                                  | ✅ Done        |
-| 3     | Base-page abstraction (`@core/ui`) + DRY page objects                    | ✅ Done        |
-| 4     | Allure reporting + CI api/ui job split                                   | ✅ Done        |
-| 5     | **Contract testing (Pact)**                                              | 🔄 In progress |
-| 6     | Performance testing — load, stress, spike, soak (k6)                     | 📋 Planned     |
-| 7     | Security testing — baseline scan (OWASP ZAP)                             | 📋 Planned     |
-| 8     | Visual regression testing (Playwright snapshots)                         | 📋 Planned     |
-| 9     | Accessibility testing (axe-core)                                         | 📋 Planned     |
+| Phase | Discipline                                                               | Status     |
+| ----- | ------------------------------------------------------------------------ | ---------- |
+| 0     | Quality gates (ESLint, Prettier, husky, typed env)                       | ✅ Done    |
+| 1     | API integration (core HTTP client + DummyJSON auth/products/carts/users) | ✅ Done    |
+| 2     | Test tagging (`@smoke` / `@regression`)                                  | ✅ Done    |
+| 3     | Base-page abstraction (`@core/ui`) + DRY page objects                    | ✅ Done    |
+| 4     | Allure reporting + CI api/ui job split                                   | ✅ Done    |
+| 5     | Contract testing (Pact, consumer-driven)                                 | ✅ Done    |
+| 6     | Performance testing — load, stress, spike, soak (k6)                     | 📋 Planned |
+| 7     | Security testing — baseline scan (OWASP ZAP)                             | 📋 Planned |
+| 8     | Visual regression testing (Playwright snapshots)                         | 📋 Planned |
+| 9     | Accessibility testing (axe-core)                                         | 📋 Planned |
 
 ### Phase 5 — Contract testing (Pact)
 
