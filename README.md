@@ -304,3 +304,54 @@ or reviewing tests.
 - dotenv (environment config)
 - Allure (rich test reporting via allure-playwright)
 - ESLint + Prettier + husky + lint-staged (quality gates)
+
+---
+
+## Roadmap
+
+The framework is intentionally phased — each phase adds a new testing discipline
+while building on the patterns already in place.
+
+| Phase | Discipline                                                               | Status         |
+| ----- | ------------------------------------------------------------------------ | -------------- |
+| 0     | Quality gates (ESLint, Prettier, husky, typed env)                       | ✅ Done        |
+| 1     | API integration (core HTTP client + DummyJSON auth/products/carts/users) | ✅ Done        |
+| 2     | Test tagging (`@smoke` / `@regression`)                                  | ✅ Done        |
+| 3     | Base-page abstraction (`@core/ui`) + DRY page objects                    | ✅ Done        |
+| 4     | Allure reporting + CI api/ui job split                                   | ✅ Done        |
+| 5     | **Contract testing (Pact)**                                              | 🔄 In progress |
+| 6     | Performance testing — load, stress, spike, soak (k6)                     | 📋 Planned     |
+| 7     | Security testing — baseline scan (OWASP ZAP)                             | 📋 Planned     |
+| 8     | Visual regression testing (Playwright snapshots)                         | 📋 Planned     |
+| 9     | Accessibility testing (axe-core)                                         | 📋 Planned     |
+
+### Phase 5 — Contract testing (Pact)
+
+Consumer-driven contract tests using `@pact-foundation/pact`. The test suite
+acts as the consumer; DummyJSON is the provider. Pact files are generated
+locally and replayed against the live API for provider verification. Shows
+cross-team API safety at a principal level — complementary to zod (runtime
+shape) rather than a replacement.
+
+### Phase 6 — Performance testing (k6)
+
+Load, stress, spike, and soak tests against the DummyJSON API. Thresholds: p95 <
+500ms, error rate < 1%. Scripts live under `tests/dummyjson/perf/`. A dedicated
+CI workflow handles performance runs on-demand rather than gating PRs.
+
+### Phase 7 — Security testing (OWASP ZAP)
+
+Automated passive baseline scan against DummyJSON wired into a nightly CI job.
+ZAP HTML report uploaded as an artifact. Demonstrates SDET awareness of
+non-functional security concerns beyond happy-path correctness.
+
+### Phase 8 — Visual regression (Playwright snapshots)
+
+`toHaveScreenshot()` on key SauceDemo pages (inventory, cart, checkout). Zero
+extra dependencies; snapshots committed to the repo and diffed in CI.
+
+### Phase 9 — Accessibility testing (axe-core)
+
+WCAG 2.1 AA baseline scan on all SauceDemo pages using `@axe-core/playwright`.
+Violations surfaced as Allure attachments; zero critical/serious violations
+asserted.
