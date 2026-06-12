@@ -1,0 +1,38 @@
+name: Security (OWASP ZAP)
+
+# Passive baseline scan only: ZAP spiders the target and analyses the responses
+# it sees — it does NOT launch active attacks. Manual dispatch only, because the
+# default targets are third-party demo sites we don't own; we never scan on a
+# schedule. Non-gating — findings against infrastructure we don't control are
+# informational, surfaced as an artifact rather than failing the build.
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'URL to baseline-scan (passive only)'
+        type: string
+        default: 'https://www.saucedemo.com'
+
+permissions:
+  contents: read
+
+jobs:
+  zap-baseline:
+    name: ZAP baseline scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          target: ${{ inputs.target }}
+          rules_file_name: .zap/rules.tsv
+          # -a includes the alpha passive rules for broader coverage.
+          cmd_options: '-a'
+          # Don't fail the workflow (target is third-party; results inform, not gate)
+          # and don't auto-open GitHub issues — keep the portfolio repo clean.
+          fail_action: false
+          allow_issue_writing: false
+          artifact_name: zap-baseline-report

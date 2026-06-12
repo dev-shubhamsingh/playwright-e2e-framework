@@ -347,6 +347,30 @@ gating PRs.
 
 ---
 
+## Security Testing — OWASP ZAP
+
+A passive **baseline scan** ([`zaproxy/action-baseline`](https://github.com/zaproxy/action-baseline))
+wired into a manual-dispatch workflow (`security.yml`). ZAP spiders the target
+and analyses the responses it sees — it does **not** launch active attacks, so
+it's safe to point at the public demo sites. Findings (missing security
+headers, cookie flags, information disclosure, etc.) are uploaded as an HTML
+report artifact.
+
+Run it from the Actions tab → "Security (OWASP ZAP)" → Run workflow, optionally
+overriding the target URL (defaults to the SauceDemo web app, which a baseline
+scan suits best).
+
+Deliberate choices:
+
+- **Passive only.** The targets are third-party infrastructure we don't own;
+  active/attack scanning someone else's system would be irresponsible.
+- **Manual dispatch, not scheduled.** Nightly scans of third-party sites look
+  like recon — keep it intentional.
+- **Non-gating.** Findings against systems we don't control inform rather than
+  block. Noisy low-signal rules are tuned down in `.zap/rules.tsv`.
+
+---
+
 ## TARS
 
 This project is built alongside **TARS** (Test Automation & Reliability System),
@@ -367,6 +391,7 @@ or reviewing tests.
 - Allure (rich test reporting via allure-playwright)
 - Pact (`@pact-foundation/pact`) + Jest (consumer contract testing)
 - k6 (performance: load, stress, spike, soak — TypeScript scripts)
+- OWASP ZAP (passive security baseline scan via GitHub Actions)
 - ESLint + Prettier + husky + lint-staged (quality gates)
 
 ---
@@ -385,7 +410,7 @@ while building on the patterns already in place.
 | 4     | Allure reporting + CI api/ui job split                                   | ✅ Done    |
 | 5     | Contract testing (Pact, consumer-driven)                                 | ✅ Done    |
 | 6     | Performance testing — load, stress, spike, soak (k6)                     | ✅ Done    |
-| 7     | Security testing — baseline scan (OWASP ZAP)                             | 📋 Planned |
+| 7     | Security testing — baseline scan (OWASP ZAP)                             | ✅ Done    |
 | 8     | Visual regression testing (Playwright snapshots)                         | 📋 Planned |
 | 9     | Accessibility testing (axe-core)                                         | 📋 Planned |
 

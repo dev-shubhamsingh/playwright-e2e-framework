@@ -1,0 +1,8 @@
+# ZAP passive-scan rule tuning for the baseline scan.
+# Tab-separated: <ruleId>	<WARN|FAIL|IGNORE>	<comment>
+# Any rule not listed defaults to WARN. Nothing is set to FAIL because the
+# scan runs against third-party demo sites we don't own — findings are
+# informational. IGNORE is used to silence low-signal noise on demo apps.
+10027	IGNORE	Information Disclosure - Suspicious Comments (noisy on demo apps)
+10096	IGNORE	Timestamp Disclosure (low signal on a public demo)
+10109	IGNORE	Modern Web Application (informational only)
