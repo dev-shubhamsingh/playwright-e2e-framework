@@ -34,6 +34,20 @@ interface TestRecord {
 }
 
 const REPORT_FILE = 'tars-report.md';
+const RESULTS_FILE = 'tars-results.json';
+
+/** Machine-readable run summary, consumed by `tars quarantine` and CI. */
+export interface TarsResults {
+  generatedAt: string;
+  status: string;
+  total: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  passRate: number;
+  flakeRate: number;
+  flaky: { project: string; title: string }[];
+}
 
 export default class TarsReporter implements Reporter {
   private records: TestRecord[] = [];
@@ -67,6 +81,10 @@ export default class TarsReporter implements Reporter {
     try {
       const brief = this.buildBrief(result.status);
       writeFileSync(path.join(process.cwd(), REPORT_FILE), brief.markdown);
+      writeFileSync(
+        path.join(process.cwd(), RESULTS_FILE),
+        JSON.stringify(brief.data, null, 2),
+      );
 
       console.log(brief.console);
     } catch {
@@ -77,6 +95,7 @@ export default class TarsReporter implements Reporter {
   private buildBrief(runStatus: FullResult['status']): {
     markdown: string;
     console: string;
+    data: TarsResults;
   } {
     const total = this.records.length;
     const passed = this.records.filter((r) => r.outcome === 'expected').length;
@@ -163,7 +182,19 @@ export default class TarsReporter implements Reporter {
       '└───────────────────────────────────────────────────────',
     ].join('\n');
 
-    return { markdown: md, console: con };
+    const data: TarsResults = {
+      generatedAt: new Date().toISOString(),
+      status: runStatus,
+      total,
+      passed,
+      failed,
+      skipped,
+      passRate: Number(passRate),
+      flakeRate: Number(flakeRate),
+      flaky: flaky.map((r) => ({ project: r.project, title: r.title })),
+    };
+
+    return { markdown: md, console: con, data };
   }
 
   private groupCounts(key: (r: TestRecord) => string): Map<string, number> {

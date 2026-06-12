@@ -24,12 +24,20 @@ be honest about what's next, and never claim a capability that isn't running.
 
 ## Shipped today
 
-| Capability                   | What it does                                                                                                                                                                                                                                                                            | Where                                                                                                            |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Mission Control reporter** | A custom Playwright reporter that turns every run into intelligence: pass rate, **flake detection** (tests that only went green on retry), slowest paths, and breakdowns by project and tag. Writes a Markdown brief + console summary. Defensive by design — it can never break a run. | [`reporter/TarsReporter.ts`](./reporter/TarsReporter.ts)                                                         |
-| **Governance engine**        | Three steering documents that hold every change — human or AI — to a principal bar: typed code, deterministic tests, clean commits, honest tradeoffs. Loaded as context on every interaction.                                                                                           | [`persona.md`](./persona.md) · [`architecture.md`](./architecture.md) · [`test-patterns.md`](./test-patterns.md) |
+| Capability               | What it does                                                                                                                                                                                                                                          | Where                                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Mission Control**      | Custom Playwright reporter — turns every run into intelligence: pass rate, **flake detection** (passed-only-on-retry), slowest paths, breakdown by project/tag. Writes a Markdown brief + machine-readable JSON. Defensive: it can never break a run. | [`reporter/TarsReporter.ts`](./reporter/TarsReporter.ts)                                                         |
+| **Risk-based selection** | Maps changed files in a diff to the smallest set of affected specs (test-impact analysis) so a PR runs only what matters. Escalates to the full suite on core/shared/config changes.                                                                  | [`engine/select.ts`](./engine/select.ts)                                                                         |
+| **Auto-quarantine**      | Folds a run's flaky tests into a committed, deduplicated ledger tracking flake count and first/last-seen — closing the loop from detection to triage.                                                                                                 | [`engine/quarantine.ts`](./engine/quarantine.ts)                                                                 |
+| **Governance engine**    | Three steering docs that hold every change — human or AI — to a principal bar: typed code, deterministic tests, clean commits, honest tradeoffs. Loaded as context on every interaction.                                                              | [`persona.md`](./persona.md) · [`architecture.md`](./architecture.md) · [`test-patterns.md`](./test-patterns.md) |
 
-Run any suite and TARS reports:
+```bash
+npm run tars:select        # which tests does this diff actually affect?
+npm run tars:quarantine    # fold the last run's flakes into the ledger
+# Mission Control runs automatically on every `playwright test`.
+```
+
+Every run, TARS reports:
 
 ```
 ┌─ 🤖 TARS Mission Control ─────────────────────────────
@@ -48,8 +56,8 @@ than buzzwords:
 flowchart LR
     subgraph SENSE["1 · Sense"]
         R[Run results]
-        T[Traces / timings]
-        H[Git history]
+        T[Git diff]
+        H[Flake history]
     end
     subgraph REASON["2 · Reason"]
         M[Rules + memory<br/>persona · architecture · patterns]
@@ -57,38 +65,37 @@ flowchart LR
     end
     subgraph ACT["3 · Act"]
         B[Mission Control brief]
-        G[Quality gates]
-        N[Next-step proposals]
+        S[Risk-based selection]
+        QQ[Auto-quarantine]
     end
     SENSE --> REASON --> ACT --> SENSE
     classDef s fill:#1f6feb,color:#fff;
     class M,Q s;
 ```
 
-- **Sense** — ingest test results, durations, retries, and (roadmap) traces +
-  diffs.
+- **Sense** — ingest test results/retries, the git diff, and the flake ledger.
 - **Reason** — apply the governing rules and quality signals; decide what
   matters.
-- **Act** — emit the Mission Control brief today; gate, quarantine, and propose
-  fixes on the roadmap.
+- **Act** — emit the brief, select the affected tests, quarantine the flakes.
 
 ## Capability roadmap
 
 Honest status — `✅` runs today, `◐` in design, `○` planned. Each maps to an
 industry best practice a senior QE team would recognise.
 
-| Capability                                  | Best practice                     | Status |
-| ------------------------------------------- | --------------------------------- | ------ |
-| Run intelligence brief (pass/flake/slowest) | Observability-driven QE           | ✅     |
-| Flake detection from retries                | Flake <1% culture                 | ✅     |
-| Governance rules as living docs             | Shift-left, code-review-as-config | ✅     |
-| Auto-quarantine of flaky tests              | Deterministic CI                  | ◐      |
-| Risk-based test selection from git diff     | Test-impact analysis              | ◐      |
-| Trend memory across runs (SQLite/JSON)      | SLO dashboards                    | ◐      |
-| Failure triage: correlate trace + logs      | MTTR reduction                    | ○      |
-| MCP server — TARS as a callable agent tool  | Agent-native tooling              | ○      |
-| Self-healing locator suggestions            | AI-augmented authoring            | ○      |
-| PR review bot (rules + diff)                | Quality gate automation           | ○      |
+| Capability                                     | Best practice                     | Status |
+| ---------------------------------------------- | --------------------------------- | ------ |
+| Run intelligence brief (pass/flake/slowest)    | Observability-driven QE           | ✅     |
+| Flake detection from retries                   | Flake <1% culture                 | ✅     |
+| Risk-based test selection from git diff        | Test-impact analysis              | ✅     |
+| Auto-quarantine ledger                         | Deterministic CI                  | ✅     |
+| Governance rules as living docs                | Shift-left, code-review-as-config | ✅     |
+| Trend memory across runs (history + dashboard) | SLO dashboards                    | ◐      |
+| CI wiring of selection + quarantine            | Faster pipelines                  | ◐      |
+| Failure triage: correlate trace + logs         | MTTR reduction                    | ○      |
+| MCP server — TARS as a callable agent tool     | Agent-native tooling              | ○      |
+| Self-healing locator suggestions               | AI-augmented authoring            | ○      |
+| PR review bot (rules + diff)                   | Quality gate automation           | ○      |
 
 ## Principles (the honesty setting)
 
