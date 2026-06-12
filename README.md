@@ -151,6 +151,10 @@ npx playwright test tests/dummyjson/api/products.spec.ts
 
 # View the HTML report after a run
 npm run report
+
+# Generate and open the Allure report (requires allure CLI)
+npm run allure:generate
+npm run allure:open
 ```
 
 ### Test tags
@@ -185,23 +189,28 @@ and Prettier before each commit.
 
 ## Continuous Integration
 
-GitHub Actions (`.github/workflows/playwright.yml`) runs tests in two tiers:
+GitHub Actions (`.github/workflows/playwright.yml`) runs tests in three tiers:
 
-**Required gate — every push / PR to `main`:** a fast, reliable `Chromium + API`
-job. It installs Chromium only, type-checks (`tsc --noEmit`), then runs the
-`login`, `authenticated`, and `api` projects. This is the job that must stay
-green to merge.
+**`typecheck` — every push / PR:** runs first, blocks all other jobs. Fast gate
+that prevents broken types from wasting browser minutes.
 
-**Cross-browser matrix — nightly + on demand:** a separate job (Firefox, WebKit,
-mobile-chrome, mobile-safari) that runs on a schedule and via
-`workflow_dispatch`. It is kept out of the PR loop because WebKit/mobile are
-currently flaky on CI runners, so cross-browser coverage is preserved without
-gating merges. Each tier uploads its HTML report as an artifact (retained 14
-days).
+**`test-ui` and `test-api` — every push / PR, run in parallel after `typecheck`:**
+the two required jobs that must stay green to merge. Each has its own timeout,
+Chromium-only install, and uploads both a Playwright HTML report and Allure
+result files as separate artifacts (retained 14 days).
 
-CI behaviour is also driven by the `CI` env var inside `playwright.config.ts`:
-`forbidOnly` is enforced, failed tests retry twice, and workers drop to one for
-deterministic, low-noise runs.
+| Job        | Projects                 | Timeout |
+| ---------- | ------------------------ | ------- |
+| `test-ui`  | `login`, `authenticated` | 20 min  |
+| `test-api` | `api`                    | 10 min  |
+
+**`cross-browser` matrix — nightly + `workflow_dispatch` only:**
+Firefox, WebKit, mobile-chrome, mobile-safari — one job per browser,
+`fail-fast: false`. Non-gating; cross-browser coverage is preserved without
+blocking PRs while WebKit/mobile-on-CI flakiness is being investigated.
+
+CI behaviour from `playwright.config.ts`: `forbidOnly` enforced, 2 retries on
+failure, 1 worker for deterministic runs.
 
 ---
 
@@ -293,4 +302,5 @@ or reviewing tests.
 - zod (response schema validation)
 - Faker (test data generation)
 - dotenv (environment config)
+- Allure (rich test reporting via allure-playwright)
 - ESLint + Prettier + husky + lint-staged (quality gates)

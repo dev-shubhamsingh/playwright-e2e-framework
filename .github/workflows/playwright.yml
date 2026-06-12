@@ -5,84 +5,113 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  # Allow the full cross-browser job to be kicked off by hand.
   workflow_dispatch:
-  # Nightly full cross-browser run (02:00 UTC).
   schedule:
     - cron: '0 2 * * *'
 
 jobs:
-  # ── Required gate: fast, reliable signal on every push/PR ────────────────
-  # Chromium UI (login + authenticated) plus the API suite. This is the job
-  # that must stay green to merge.
-  test:
-    name: Chromium + API
+  # ── Type-check: shared gate, runs first ──────────────────────────────────
+  typecheck:
+    name: Type-check
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    timeout-minutes: 5
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
 
-      - name: Install dependencies
-        run: npm ci
+  # ── UI suite (Chromium) ───────────────────────────────────────────────────
+  test-ui:
+    name: UI — Chromium
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
 
-      - name: Install Playwright browsers (Chromium only)
-        run: npx playwright install --with-deps chromium
+      - name: Run UI suite (login + authenticated)
+        run: npx playwright test --project=login --project=authenticated
 
-      - name: Type-check
-        run: npx tsc --noEmit
-
-      - name: Run Chromium UI + API suites
-        run: >-
-          npx playwright test
-          --project=login
-          --project=authenticated
-          --project=api
-
-      - name: Upload HTML report
+      - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-ui
           path: playwright-report/
           retention-days: 14
 
-  # ── Cross-browser matrix: scheduled + manual only, non-blocking ──────────
-  # Firefox, WebKit, and mobile viewports. Kept out of the PR loop because
-  # WebKit/mobile are currently flaky on CI runners; runs nightly and on
-  # workflow_dispatch so coverage is preserved without gating merges.
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results-ui
+          path: allure-results/
+          retention-days: 14
+
+  # ── API suite (no browser) ────────────────────────────────────────────────
+  test-api:
+    name: API — DummyJSON
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # API tests use Playwright's request fixture — no browser needed.
+      - run: npx playwright install --with-deps chromium
+
+      - name: Run API suite
+        run: npx playwright test --project=api
+
+      - name: Upload Playwright HTML report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-api
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results-api
+          path: allure-results/
+          retention-days: 14
+
+  # ── Cross-browser matrix: scheduled + manual only ─────────────────────────
   cross-browser:
     name: Cross-browser (${{ matrix.project }})
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    needs: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         project: [firefox, webkit, mobile-chrome, mobile-safari]
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      - run: npm ci
+      - run: npx playwright install --with-deps
 
       - name: Run ${{ matrix.project }} suite
         run: npx playwright test --project=${{ matrix.project }}
