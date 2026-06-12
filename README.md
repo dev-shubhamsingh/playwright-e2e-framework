@@ -67,7 +67,8 @@ touching existing code.
 │       └── api/                # API spec files
 ├── playwright.config.ts        # projects, browsers, reporters
 ├── eslint.config.mjs           # flat ESLint config
-└── tsconfig.json               # strict + path aliases
+├── tsconfig.json               # strict + path aliases
+└── .github/workflows/          # CI: type-check + full suite on push/PR
 ```
 
 Test types for a domain live under `tests/<domain>/<type>/`. Planned next:
@@ -159,6 +160,24 @@ npm run format:check  # prettier --check .
 
 A husky `pre-commit` hook runs lint-staged, auto-fixing staged files with ESLint
 and Prettier before each commit.
+
+---
+
+## Continuous Integration
+
+A GitHub Actions workflow (`.github/workflows/playwright.yml`) runs the full
+suite on every push and pull request to `main`:
+
+1. Checks out the repo and sets up Node 20 with npm caching.
+2. Installs dependencies (`npm ci`) and Playwright browsers
+   (`npx playwright install --with-deps`).
+3. Type-checks (`tsc --noEmit`), then runs `npx playwright test`.
+4. Uploads the HTML report as a build artifact (retained 14 days), even if the
+   run fails.
+
+CI behaviour is driven by the `CI` env var inside `playwright.config.ts`:
+`forbidOnly` is enforced, failed tests retry twice, and workers drop to one for
+deterministic, low-noise runs.
 
 ---
 
