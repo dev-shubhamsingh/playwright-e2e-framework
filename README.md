@@ -48,7 +48,8 @@ touching existing code.
 ├── src/
 │   ├── core/                   # app-agnostic framework code
 │   │   ├── config/             # env.ts — typed, zod-validated environment
-│   │   └── http/               # ApiClient base (retry, report attachments)
+│   │   ├── http/               # ApiClient base (retry, report attachments)
+│   │   └── ui/                 # BasePage (page handle + baseURL-relative goto)
 │   ├── shared/utils/           # helpers + Faker test-data factory
 │   ├── saucedemo/              # UI domain
 │   │   ├── pages/              # Page Object Model classes
@@ -222,6 +223,11 @@ UI projects ignore `**/dummyjson/**`; the `api` project matches only API specs.
 
 Page Objects encapsulate locators and actions (`src/saucedemo/pages`). Fixtures
 inject them into tests, so specs never call `new SomePage(page)` directly.
+
+Page objects extend a small two-tier base: the app-agnostic `@core/ui` `BasePage`
+(holds `page`, provides a `baseURL`-relative `goto()`), and `SauceDemoPage` for
+the pages sharing the standard header title (`getPageTitle()`). Locators are
+`readonly` property initializers; shared parsing lives in `@shared/utils`.
 
 **Authentication runs once.** The `setup` project logs in and saves cookies +
 localStorage to `.auth/standard_user.json`. Authenticated projects declare
