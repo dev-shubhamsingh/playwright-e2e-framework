@@ -26,7 +26,7 @@ jobs:
 
   # ── UI suite (Chromium) ───────────────────────────────────────────────────
   test-ui:
-    name: UI — Chromium
+    name: UI - Chromium
     needs: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -60,7 +60,7 @@ jobs:
 
   # ── API suite (no browser) ────────────────────────────────────────────────
   test-api:
-    name: API — DummyJSON
+    name: API - DummyJSON
     needs: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -95,7 +95,7 @@ jobs:
 
   # ── Contract suite (Pact, Jest) ───────────────────────────────────────────
   test-contract:
-    name: Contract — Pact
+    name: Contract - Pact
     needs: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -120,7 +120,7 @@ jobs:
 
   # ── Accessibility suite (axe-core, Chromium) ──────────────────────────────
   test-a11y:
-    name: Accessibility — axe-core
+    name: Accessibility - axe-core
     needs: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 15
