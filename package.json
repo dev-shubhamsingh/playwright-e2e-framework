@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "test": "playwright test",
+    "test:unit": "playwright test --project=unit",
     "test:api": "playwright test --project=api",
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
