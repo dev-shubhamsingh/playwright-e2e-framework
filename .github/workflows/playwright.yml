@@ -36,6 +36,10 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run format:check
+      # Nothing type-checks ~4,000 lines of agent instructions. This verifies the
+      # docs' mechanically-checkable claims: every quoted npm script, every
+      # --project name, and every relative link actually exists.
+      - run: npm run tars:drift
 
   # ── Framework unit tests: the framework's own code ────────────────────────
   # No browser, no network — runs in about a second. Deliberately first among
@@ -161,6 +165,23 @@ jobs:
       - name: Publish Mission Control brief to the run summary
         if: ${{ !cancelled() }}
         run: cat tars-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Reports the delta against recent runs of the same scope. --report so a CI
+      # run reads the committed history without appending to it: history is
+      # recorded by a deliberate commit, not silently by every pull request.
+      - name: Trend against recent runs
+        if: ${{ !cancelled() }}
+        run: npm run tars:trend -- --report
+
+      # The self-verifying half of risk-based selection: would selection have
+      # skipped a spec that actually failed? Fails the step on a miss, which is
+      # the only outcome that matters. Selection does not narrow the gate until
+      # this has been clean across a run of red builds.
+      - name: Shadow-audit risk-based selection
+        if: ${{ !cancelled() }}
+        run: |
+          npx tsx tars/engine/shadow.ts \
+            --base "${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
 
       - name: Upload Mission Control artifacts
         uses: actions/upload-artifact@v4

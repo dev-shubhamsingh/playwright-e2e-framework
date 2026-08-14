@@ -1,0 +1,161 @@
+name: Diagnose cross-browser timeouts
+
+# Purpose-built to answer ONE open question with evidence rather than a hypothesis:
+#
+#   Why does every test in the webkit / mobile-chrome / mobile-safari projects hit
+#   the 30s timeout on a GitHub runner while passing locally?
+#
+# The standing guess is "network reach from ubuntu-latest to the target site", but
+# that has never been tested. The trap in diagnosing it from the nightly matrix is
+# that each browser runs in a SEPARATE job, on a separate runner, so a difference
+# between them is confounded with a difference between machines.
+#
+# So this runs every engine in ONE job, on ONE runner, against the same network, in
+# sequence — which is the only way a Chromium-vs-WebKit difference means anything.
+#
+# Manual dispatch only. It gathers evidence; it gates nothing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target to probe'
+        type: string
+        default: 'https://www.saucedemo.com'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Same runner, every engine
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps
+
+      # ── Layer 1: is the target reachable at all, ignoring browsers? ───────
+      - name: Network reachability (curl)
+        continue-on-error: true
+        run: |
+          {
+            echo '## 1 · Network reachability (no browser involved)'
+            echo
+            echo '```'
+            echo "resolving ${{ inputs.target }}"
+            getent hosts "$(echo '${{ inputs.target }}' | sed -E 's#https?://##; s#/.*##')" || echo "DNS: FAILED"
+            for i in 1 2 3; do
+              curl -sS -o /dev/null \
+                -w "attempt $i  HTTP %{http_code}  dns=%{time_namelookup}s  connect=%{time_connect}s  tls=%{time_appconnect}s  total=%{time_total}s\n" \
+                --max-time 30 '${{ inputs.target }}' || echo "attempt $i: curl FAILED"
+            done
+            echo '```'
+            echo
+            echo 'If this layer fails or is slow, the browsers are innocent and the'
+            echo 'cause is egress from the runner — not a code defect.'
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ── Layer 2: can each engine load the page, on this same runner? ──────
+      # A bare navigation per engine, no fixtures, no storageState, no test
+      # framework — so a failure here isolates the engine from the suite.
+      - name: Bare navigation per engine
+        continue-on-error: true
+        run: |
+          cat > /tmp/probe.mjs <<'PROBE'
+          import { chromium, firefox, webkit, devices } from '@playwright/test';
+
+          const target = process.env.TARGET;
+          const engines = [
+            ['chromium',      chromium, {}],
+            ['firefox',       firefox,  {}],
+            ['webkit',        webkit,   {}],
+            ['mobile-chrome', chromium, devices['Pixel 5']],
+            ['mobile-safari', webkit,   devices['iPhone 13']],
+          ];
+
+          const rows = [];
+          for (const [name, type, ctx] of engines) {
+            const started = Date.now();
+            let browser;
+            try {
+              browser = await type.launch();
+              const page = await (await browser.newContext(ctx)).newPage();
+              const response = await page.goto(target, { timeout: 30_000, waitUntil: 'load' });
+              const title = await page.title();
+              rows.push(`| ${name} | ✅ ${response?.status()} | ${Date.now() - started}ms | ${title} |`);
+            } catch (error) {
+              const msg = String(error).split('\n')[0].slice(0, 120);
+              rows.push(`| ${name} | ❌ | ${Date.now() - started}ms | ${msg} |`);
+            } finally {
+              await browser?.close().catch(() => {});
+            }
+          }
+
+          console.log('## 2 · Bare navigation, one runner, every engine\n');
+          console.log('| Engine | Result | Elapsed | Title / error |');
+          console.log('| --- | --- | --- | --- |');
+          rows.forEach((r) => console.log(r));
+          console.log('');
+          console.log('Chromium succeeding while WebKit fails **here** rules out the network,');
+          console.log('because both used the same runner and the same egress. All engines');
+          console.log('failing points at egress or the target, not at our code.');
+          console.log('');
+          PROBE
+          TARGET='${{ inputs.target }}' node /tmp/probe.mjs >> "$GITHUB_STEP_SUMMARY"
+
+      # ── Layer 3: the real suites, so the failure mode is comparable ───────
+      - name: Run each cross-browser project (non-blocking)
+        continue-on-error: true
+        run: |
+          echo '## 3 · The actual projects' >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
+          echo '| Project | Result |' >> "$GITHUB_STEP_SUMMARY"
+          echo '| --- | --- |' >> "$GITHUB_STEP_SUMMARY"
+          for project in chromium-baseline firefox webkit mobile-chrome mobile-safari; do
+            if [ "$project" = "chromium-baseline" ]; then
+              # The control: if `authenticated` also fails, the problem is not
+              # browser-specific and the whole hypothesis is wrong.
+              target_project=authenticated
+            else
+              target_project=$project
+            fi
+            if npx playwright test --project="$target_project" --retries=0 > "/tmp/$project.log" 2>&1; then
+              echo "| $target_project | ✅ passed |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| $target_project | ❌ failed — see the artifact |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+          echo >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload per-project logs and traces
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: browser-diagnosis
+          path: |
+            /tmp/*.log
+            test-results/
+            playwright-report/
+          retention-days: 14
+
+      - name: How to read this
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo '## How to read this'
+            echo
+            echo '| Layers 1 / 2 / 3 | Conclusion |'
+            echo '| --- | --- |'
+            echo '| curl fails | Runner egress. Not our code. The projects cannot be gated from GitHub-hosted runners; say so permanently |'
+            echo '| curl OK, ALL engines fail navigation | Target blocks or throttles the runner. Same conclusion, better evidence |'
+            echo '| curl OK, Chromium OK, WebKit fails | A genuine engine issue on this platform. Fixable, and worth a real investigation |'
+            echo '| Everything passes here, nightly still fails | Load or concurrency, not reach. Look at `workers`, and at the nightly running four jobs at once |'
+            echo '| The `authenticated` control also fails | The hypothesis was wrong from the start — this is not browser-specific |'
+          } >> "$GITHUB_STEP_SUMMARY"
