@@ -29,7 +29,8 @@ be honest about what's next, and never claim a capability that isn't running.
 | **Mission Control**      | Custom Playwright reporter — turns every run into intelligence: pass rate, **flake detection** (passed-only-on-retry), slowest paths, breakdown by project/tag. Writes a Markdown brief + machine-readable JSON. Defensive: it can never break a run. | [`reporter/TarsReporter.ts`](./reporter/TarsReporter.ts)                                                         |
 | **Risk-based selection** | Maps changed files in a diff to the smallest set of affected specs (test-impact analysis) so a PR runs only what matters. Escalates to the full suite on core/shared/config changes.                                                                  | [`engine/select.ts`](./engine/select.ts)                                                                         |
 | **Auto-quarantine**      | Folds a run's flaky tests into a committed, deduplicated ledger tracking flake count and first/last-seen — closing the loop from detection to triage.                                                                                                 | [`engine/quarantine.ts`](./engine/quarantine.ts)                                                                 |
-| **Governance engine**    | Three steering docs that hold every change — human or AI — to a principal bar: typed code, deterministic tests, clean commits, honest tradeoffs. Loaded as context on every interaction.                                                              | [`persona.md`](./persona.md) · [`architecture.md`](./architecture.md) · [`test-patterns.md`](./test-patterns.md) |
+| **Governance engine**    | Three canon docs that hold every change — human or agent — to a principal bar: typed code, deterministic tests, clean commits, honest tradeoffs. Entered via `CLAUDE.md`.                                                                             | [`persona.md`](./persona.md) · [`architecture.md`](./architecture.md) · [`test-patterns.md`](./test-patterns.md) |
+| **Agent skills**         | Four committed skills that turn the canon into executable workflows: risk-scored planning, spec authoring, quality review, and CI/flake triage — each grounded in this stack's real levels and commands.                                              | [`.claude/skills/`](../.claude/skills) · [guide](../docs/TESTING-SKILLS.md)                                      |
 
 ```bash
 npm run tars:select        # which tests does this diff actually affect?
@@ -83,19 +84,21 @@ flowchart LR
 Honest status — `✅` runs today, `◐` in design, `○` planned. Each maps to an
 industry best practice a senior QE team would recognise.
 
-| Capability                                     | Best practice                     | Status |
-| ---------------------------------------------- | --------------------------------- | ------ |
-| Run intelligence brief (pass/flake/slowest)    | Observability-driven QE           | ✅     |
-| Flake detection from retries                   | Flake <1% culture                 | ✅     |
-| Risk-based test selection from git diff        | Test-impact analysis              | ✅     |
-| Auto-quarantine ledger                         | Deterministic CI                  | ✅     |
-| Governance rules as living docs                | Shift-left, code-review-as-config | ✅     |
-| Trend memory across runs (history + dashboard) | SLO dashboards                    | ◐      |
-| CI wiring of selection + quarantine            | Faster pipelines                  | ◐      |
-| Failure triage: correlate trace + logs         | MTTR reduction                    | ○      |
-| MCP server — TARS as a callable agent tool     | Agent-native tooling              | ○      |
-| Self-healing locator suggestions               | AI-augmented authoring            | ○      |
-| PR review bot (rules + diff)                   | Quality gate automation           | ○      |
+| Capability                                       | Best practice                     | Status |
+| ------------------------------------------------ | --------------------------------- | ------ |
+| Run intelligence brief (pass/flake/slowest)      | Observability-driven QE           | ✅     |
+| Flake detection from retries                     | Flake <1% culture                 | ✅     |
+| Risk-based test selection from git diff          | Test-impact analysis              | ✅     |
+| Auto-quarantine ledger                           | Deterministic CI                  | ✅     |
+| Governance rules as living docs                  | Shift-left, code-review-as-config | ✅     |
+| Mission Control dashboard (`tars:dashboard`)     | SLO dashboards                    | ✅     |
+| Agent skills for plan / author / review / triage | Agent-native QE workflows         | ✅     |
+| Trend memory across runs (history across runs)   | Quality trend analysis            | ○      |
+| CI wiring of selection + quarantine              | Faster pipelines                  | ◐      |
+| Failure triage: correlate trace + logs           | MTTR reduction                    | ○      |
+| MCP server — TARS as a callable agent tool       | Agent-native tooling              | ○      |
+| Self-healing locator suggestions                 | AI-augmented authoring            | ○      |
+| PR review bot (rules + diff)                     | Quality gate automation           | ○      |
 
 ## Principles (the honesty setting)
 

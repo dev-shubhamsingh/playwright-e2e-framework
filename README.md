@@ -276,198 +276,118 @@ UI projects ignore `**/dummyjson/**`; the `api` project matches only API specs.
 
 ---
 
-## UI Testing — SauceDemo
+## The seven disciplines
 
-Page Objects encapsulate locators and actions (`src/saucedemo/pages`). Fixtures
-inject them into tests, so specs never call `new SomePage(page)` directly.
+Each has its own patterns, its own failure modes, and its own reference doc. The
+distinctive decision in each is below; the depth is one link away.
 
-Page objects extend a small two-tier base: the app-agnostic `@core/ui` `BasePage`
-(holds `page`, provides a `baseURL`-relative `goto()`), and `SauceDemoPage` for
-the pages sharing the standard header title (`getPageTitle()`). Locators are
-`readonly` property initializers; shared parsing lives in `@shared/utils`.
+### UI end-to-end — SauceDemo
 
-**Authentication runs once.** The `setup` project logs in and saves cookies +
-localStorage to `.auth/standard_user.json`. Authenticated projects declare
-`dependencies: ['setup']` and load that file as `storageState`, so each test
-starts logged in. The `login` project skips this — it needs a clean browser to
-test the login flow itself. `.auth/` is gitignored.
+Page Object Model on a two-level base (`BasePage` → `SauceDemoPage`), locators as
+`readonly` property initializers, `testIdAttribute: 'data-test'`. Auth happens
+**once**: a `setup` project drives the real `LoginPage` and saves `storageState`,
+which every authenticated project reloads — so no test ever logs in, and each gets
+a fresh context with a clean cart and needs no teardown.
 
-| Area           | Scenarios                                                                    |
-| -------------- | ---------------------------------------------------------------------------- |
-| Login          | valid, invalid (data-driven), locked-out, performance-glitch, redirect guard |
-| Inventory      | product display, sorting (4 orders), cart badge, navigation                  |
-| Product detail | content, add/remove toggle, back navigation                                  |
-| Cart           | contents, prices, quantities, removal, navigation                            |
-| Checkout       | happy path, price/tax/total math, form validation, cancel/back               |
-| Side menu      | reset app state, all items, logout                                           |
+→ [`e2e-playwright.md`](./.claude/skills/test-author/references/e2e-playwright.md)
 
----
+### API integration — DummyJSON
 
-## API Testing — DummyJSON
+Every resource client extends `@core/http` `ApiClient` (typed verbs, retry with
+backoff on 429/502/503/504 honouring `Retry-After`, request/response attached to
+the report). Clients return the raw `APIResponse`, so the **spec** owns the
+assertions — and every response is asserted twice: the status code explicitly, and
+the body parsed through its zod schema. One half without the other lets a `200`
+carrying an error payload pass.
 
-Resource clients (`src/dummyjson/clients`) extend the shared `@core/http`
-`ApiClient`, which provides typed `get/post/...` helpers, automatic retry with
-backoff on transient statuses (429/503/...), and request/response capture as a
-report attachment. Clients return the raw `APIResponse`, so specs own their
-status and body assertions. Response bodies are validated against zod schemas
-that double as TypeScript types.
+There is no owned datastore, so the deepest observable boundary is HTTP + schema.
+Writes against the target are simulated and never persist — stated rather than
+papered over.
 
-**Fixtures** (import from `@dummyjson/fixtures`):
+→ [`api-and-schema.md`](./.claude/skills/test-author/references/api-and-schema.md)
 
-| Fixture          | Scope  | Purpose                                                            |
-| ---------------- | ------ | ------------------------------------------------------------------ |
-| `authClient`     | test   | Anonymous `AuthClient` for `/auth/*`.                              |
-| `productsClient` | test   | Anonymous `ProductsClient` for the public `/products` endpoints.   |
-| `authTokens`     | worker | Logs in once per worker; shares access/refresh tokens.             |
-| `authedRequest`  | test   | Request context with `Authorization: Bearer <token>` pre-attached. |
+### Contract — Pact (consumer)
 
-The login response is schema-validated inside the `authTokens` fixture, so a
-broken auth contract fails fast before dependent tests run. DummyJSON simulates
-writes (no persistence); tests assert on the response contract rather than
-re-fetching.
+`PactV3` consumer contracts run by **Jest**, the one place Jest is correct here
+(the mock-server lifecycle needs a `describe`/`it` harness). Matchers, never
+literals: the contract claims "a string field `title`", not a specific product
+name. Runs offline, so it is the one suite immune to a target outage.
 
-| Area     | Scenarios                                                                                          |
-| -------- | -------------------------------------------------------------------------------------------------- |
-| Auth     | login happy path, invalid credentials (400), `/auth/me` with token, `/auth/me` without token (401) |
-| Products | list envelope, pagination (limit/skip), search, sort, field select, single by id, 404 not-found    |
+**Consumer-side only** — no broker, no provider verification, and none is
+achievable against a third-party public API.
 
----
+→ [`contract-pact.md`](./.claude/skills/test-author/references/contract-pact.md)
 
-## Contract Testing — Pact
+### Performance — k6
 
-Consumer-driven contract tests (`tests/dummyjson/contract/`) use
-[Pact](https://docs.pact.io/) to capture what this suite (consumer
-`playwright-e2e`) expects from DummyJSON (provider `DummyJSON`). Each
-interaction runs against Pact's mock server and writes a versioned contract to
-`pacts/` (gitignored) that a provider team could verify independently.
+Load, stress, spike, and soak scripts in TypeScript. **Thresholds are the
+assertion** — `p(95)<500`, `http_req_failed rate<0.01` — because a breached
+threshold makes k6 exit non-zero. A script without them measures without testing.
 
-Pact complements zod rather than replacing it: zod validates response shape at
-runtime inside integration tests; Pact produces a shareable, versioned contract
-as a separate cross-team safety net.
+The interesting constraint: k6's loader requires explicit `.ts` extensions on
+local imports, which TypeScript only permits with `allowImportingTsExtensions`,
+which requires `noEmit`. Both are set, and correct anyway — nothing here compiles.
 
-These specs run under **Jest** (the runner the Pact ecosystem is built around),
-kept isolated from the Playwright runner:
+Manual dispatch only, with conservative defaults: the target is a shared public
+API, and generating automated load against it would be abusive.
 
-```bash
-npm run test:contract
-```
+→ [`performance.md`](./.claude/skills/test-author/references/performance.md)
 
-| Area     | Contract interactions                                                   |
-| -------- | ----------------------------------------------------------------------- |
-| Auth     | login success, invalid credentials (400), `/auth/me` with/without token |
-| Products | list envelope, single by id, 404 not-found, search                      |
+### Security — OWASP ZAP
 
----
+Passive baseline scan: spiders the target and analyses the responses it receives.
+No attack payloads, manual dispatch, non-gating, `.zap/rules.tsv` tuning three
+low-signal rules to `IGNORE` with a reason each.
 
-## Performance Testing — k6
+**Active scanning is out of scope and will stay that way.** Sending crafted attack
+traffic at infrastructure you don't own and aren't authorised to test is
+unauthorised activity — however permissive the demo site looks.
 
-Load, stress, spike, and soak tests (`tests/dummyjson/performance/`) written in
-TypeScript and run with [k6](https://grafana.com/docs/k6/) (v0.57+ runs `.ts`
-natively). Shared thresholds — p95 < 500ms, error rate < 1% — make a breached
-budget fail the run, so the scripts double as CI gates.
+→ [`security-zap.md`](./.claude/skills/test-author/references/security-zap.md)
 
-```bash
-npm run perf:load     # baseline sustained load
-npm run perf:stress   # ramp beyond peak to find the breaking point
-npm run perf:spike    # sudden burst + recovery
-npm run perf:soak     # sustained load over time (leaks, latency creep)
-```
+### Visual regression — Playwright snapshots
 
-Virtual-user counts default low and are env-overridable (DummyJSON is a shared
-public API — be a good neighbour):
+`toHaveScreenshot` on three deliberately _stable_ pages, animations disabled,
+`maxDiffPixelRatio: 0.01` to absorb antialiasing without hiding a real change.
 
-```bash
-k6 run -e PEAK_VUS=200 tests/dummyjson/performance/stress.ts
-```
+**Not gated in CI**, and the reason is in the filenames: baselines are
+`*-visual-darwin.png`. A Linux runner would fail every snapshot on font rendering
+alone. Gating it means maintaining a second Linux baseline set — real work, not
+done, and not pretended.
 
-| Test   | Profile                            | Thresholds               |
-| ------ | ---------------------------------- | ------------------------ |
-| load   | ramp to 20 VUs, hold 1m, ramp down | p95 < 500ms, errors < 1% |
-| stress | ramp past peak (default 60 VUs)    | p95 < 2s, errors < 15%   |
-| spike  | burst to 100 VUs, then recover     | p95 < 3s, errors < 20%   |
-| soak   | 20 VUs held over a long window     | p95 < 500ms, errors < 1% |
+→ [`visual-and-a11y.md`](./.claude/skills/test-author/references/visual-and-a11y.md)
 
-A manual-dispatch GitHub Actions workflow (`performance.yml`) runs a chosen test
-via the official k6 actions and uploads the summary — never scheduled, never
-gating PRs.
+### Accessibility — axe-core
 
----
+WCAG 2.0/2.1 A+AA, gated in CI (axe output is platform-independent, unlike pixels).
 
-## Security Testing — OWASP ZAP
+The suite **found a real defect**: SauceDemo's product-sort `<select>` has no
+accessible name (`select-name`, critical). We can't fix a third-party app, so the
+choice was: ignore all criticals (coverage theatre), disable the rule globally
+(blinds it everywhere), or baseline that specific rule id on that specific page.
 
-A passive **baseline scan** ([`zaproxy/action-baseline`](https://github.com/zaproxy/action-baseline))
-wired into a manual-dispatch workflow (`security.yml`). ZAP spiders the target
-and analyses the responses it sees — it does **not** launch active attacks, so
-it's safe to point at the public demo sites. Findings (missing security
-headers, cookie flags, information disclosure, etc.) are uploaded as an HTML
-report artifact.
+The third. `KNOWN_CRITICAL` is keyed per page, holds specific rule ids, and each
+carries a comment — so the suite still fails on any **new** critical. A regression
+guard, not a rubber stamp. If the target ever fixes it, the suite goes red and the
+entry gets deleted.
 
-Run it from the Actions tab → "Security (OWASP ZAP)" → Run workflow, optionally
-overriding the target URL (defaults to the SauceDemo web app, which a baseline
-scan suits best).
-
-Deliberate choices:
-
-- **Passive only.** The targets are third-party infrastructure we don't own;
-  active/attack scanning someone else's system would be irresponsible.
-- **Manual dispatch, not scheduled.** Nightly scans of third-party sites look
-  like recon — keep it intentional.
-- **Non-gating.** Findings against systems we don't control inform rather than
-  block. Noisy low-signal rules are tuned down in `.zap/rules.tsv`.
-
----
-
-## Visual Regression — Playwright snapshots
-
-Pixel snapshots of stable SauceDemo pages (`tests/saucedemo/visual/`) using
-Playwright's built-in `toHaveScreenshot()` — no extra dependencies. Runs in a
-dedicated **`visual`** project (Chromium only) with animations disabled and a
-small `maxDiffPixelRatio` tolerance.
-
-```bash
-npm run test:visual          # compare against committed baselines
-npm run test:visual:update   # regenerate baselines after an intended change
-```
-
-Snapshots cover the inventory, product-detail, and empty-cart pages. Baselines
-are committed next to the spec.
-
-> **Platform note:** pixel baselines are OS-specific (Playwright names them
-> `…-visual-darwin.png`, `…-visual-linux.png`, etc.). The committed baselines
-> here are for local macOS runs. Running visual in CI (Linux) needs Linux
-> baselines, generated via the Playwright Docker image
-> (`mcr.microsoft.com/playwright`) — so the visual suite is intentionally **not**
-> part of the gating CI to avoid cross-platform false failures.
-
----
-
-## Accessibility — axe-core
-
-WCAG 2.0/2.1 A + AA scans of the authenticated SauceDemo pages
-(`tests/saucedemo/a11y/`) using [`@axe-core/playwright`](https://github.com/dequelabs/axe-core-npm).
-Runs in a dedicated **`a11y`** project (Chromium). Full axe results attach to
-the report (visible in Allure).
-
-```bash
-npm run test:a11y
-```
-
-The suite caught a real defect: SauceDemo's product-sort `<select>` has no
-accessible name (`select-name`, critical). Since SauceDemo is third-party and
-unfixable from here, known critical violations are **baselined per page** — the
-suite still fails on any _new_ critical, so it acts as a genuine regression
-guard rather than ignoring criticals wholesale. Unlike visual snapshots, a11y
-has no OS-specific output, so it **is** part of the gating CI.
-
----
+→ [`visual-and-a11y.md`](./.claude/skills/test-author/references/visual-and-a11y.md)
 
 ## TARS
 
-This project is built alongside **TARS** (Test Automation & Reliability System),
-an AI test-automation assistant whose persona, conventions, and patterns are
-captured as steering files in the workspace `.kiro/steering/`. TARS follows the
-framework's architecture, reliability rules, and commit conventions when writing
-or reviewing tests.
+**TARS** (Test Automation & Reliability System) is the quality-engineering layer
+this repository ships, not a nickname for it. It has three parts, all committed:
+
+- **Canon** — [`tars/persona.md`](./tars/persona.md),
+  [`tars/architecture.md`](./tars/architecture.md), and
+  [`tars/test-patterns.md`](./tars/test-patterns.md) hold every change, human or
+  agent, to a principal bar. [`CLAUDE.md`](./CLAUDE.md) is the entry point.
+- **Engines** — a Mission Control reporter on every run, risk-based test
+  selection from a diff, an auto-quarantine ledger, and a ledger consumer that
+  surfaces it in CI. [`→ tars/`](./tars)
+- **Agent skills** — four skills in [`.claude/skills/`](./.claude/skills) that
+  turn the canon into workflows: `test-plan`, `test-author`, `test-review`,
+  `test-ci-triage`. [`→ guide`](./docs/TESTING-SKILLS.md)
 
 ---
 
@@ -487,51 +407,43 @@ or reviewing tests.
 
 ---
 
-## Roadmap
+## Test levels — and what actually gates
 
-The framework is intentionally phased — each phase adds a new testing discipline
-while building on the patterns already in place.
+Honest status. A discipline being present is not the same as it guarding a merge.
 
-| Phase | Discipline                                                               | Status  |
-| ----- | ------------------------------------------------------------------------ | ------- |
-| 0     | Quality gates (ESLint, Prettier, husky, typed env)                       | ✅ Done |
-| 1     | API integration (core HTTP client + DummyJSON auth/products/carts/users) | ✅ Done |
-| 2     | Test tagging (`@smoke` / `@regression`)                                  | ✅ Done |
-| 3     | Base-page abstraction (`@core/ui`) + DRY page objects                    | ✅ Done |
-| 4     | Allure reporting + CI api/ui job split                                   | ✅ Done |
-| 5     | Contract testing (Pact, consumer-driven)                                 | ✅ Done |
-| 6     | Performance testing — load, stress, spike, soak (k6)                     | ✅ Done |
-| 7     | Security testing — baseline scan (OWASP ZAP)                             | ✅ Done |
-| 8     | Visual regression testing (Playwright snapshots)                         | ✅ Done |
-| 9     | Accessibility testing (axe-core)                                         | ✅ Done |
+| Level             | Harness                             | Gates a PR? | Note                                                                 |
+| ----------------- | ----------------------------------- | ----------- | -------------------------------------------------------------------- |
+| Framework unit    | `@playwright/test` (`unit` project) | ✅          | The framework's own code — helpers, `ApiClient`, `env`, TARS engines |
+| API integration   | `@playwright/test`                  | ✅          | Status + zod schema on every response                                |
+| Contract          | Pact + Jest                         | ✅          | **Consumer-side only** — no broker, no provider verification         |
+| UI end-to-end     | `@playwright/test`                  | ✅          | Sharded ×2, blob reports merged into one report + brief              |
+| Accessibility     | `@axe-core/playwright`              | ✅          | WCAG 2.0/2.1 A+AA; fails on _new_ criticals                          |
+| Visual regression | `toHaveScreenshot`                  | ❌          | Baselines are macOS-only; a Linux runner would fail on antialiasing  |
+| Performance       | k6                                  | ❌          | Manual dispatch. The target is a shared public API                   |
+| Security          | OWASP ZAP baseline                  | ❌          | Manual dispatch, **passive only** — we don't own the targets         |
+| Cross-browser     | Firefox / WebKit / mobile           | ❌          | Nightly. WebKit and mobile time out on the runner; undiagnosed       |
 
-### Phase 5 — Contract testing (Pact)
+Known gaps, stated plainly rather than buried:
 
-Consumer-driven contract tests using `@pact-foundation/pact`. The test suite
-acts as the consumer; DummyJSON is the provider. Pact files are generated
-locally and replayed against the live API for provider verification. Shows
-cross-team API safety at a principal level — complementary to zod (runtime
-shape) rather than a replacement.
+- **Contract testing is consumer-only.** It catches _our_ drift from what we
+  declared. It cannot catch the provider changing — and against a third-party
+  public API, provider verification is not achievable, not merely unbuilt.
+- **Visual regression is a local guard**, not CI coverage.
+- **WebKit and mobile fail on CI and pass locally.** Undiagnosed; the nightly job
+  now probes target reachability to gather evidence rather than assert a cause.
+- **Risk-based selection runs in CI but does not narrow the gate.** It reports
+  what it would run. A selection bug that silently skips tests is worse than a
+  slower pipeline, so it earns that trust before it gets it.
 
-### Phase 6 — Performance testing (k6)
+## Build history
 
-Load, stress, spike, and soak tests against the DummyJSON API. Thresholds: p95 <
-500ms, error rate < 1%. Scripts live under `tests/dummyjson/perf/`. A dedicated
-CI workflow handles performance runs on-demand rather than gating PRs.
+The framework was built in ten phases, each adding a discipline on top of the
+patterns already in place. The full log — including the tradeoffs, the things that
+were deferred, and the problems that cost real time — is in
+[`docs/BUILD-LOG.md`](./docs/BUILD-LOG.md).
 
-### Phase 7 — Security testing (OWASP ZAP)
+## Contributing
 
-Automated passive baseline scan against DummyJSON wired into a nightly CI job.
-ZAP HTML report uploaded as an artifact. Demonstrates SDET awareness of
-non-functional security concerns beyond happy-path correctness.
-
-### Phase 8 — Visual regression (Playwright snapshots)
-
-`toHaveScreenshot()` on key SauceDemo pages (inventory, cart, checkout). Zero
-extra dependencies; snapshots committed to the repo and diffed in CI.
-
-### Phase 9 — Accessibility testing (axe-core)
-
-WCAG 2.1 AA baseline scan on all SauceDemo pages using `@axe-core/playwright`.
-Violations surfaced as Allure attachments; zero critical/serious violations
-asserted.
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, the rules that get changes
+rejected, and which suites you can actually run locally. Security policy is in
+[`SECURITY.md`](./SECURITY.md).
