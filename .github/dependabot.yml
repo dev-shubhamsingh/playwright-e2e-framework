@@ -1,0 +1,42 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    groups:
+      # Playwright's packages are version-locked against each other and against
+      # the browser binaries; bumping them apart produces confusing failures.
+      playwright:
+        patterns:
+          - '@playwright/*'
+          - 'playwright'
+          - 'allure-playwright'
+      # Lint and format tooling churns often and never affects test behaviour.
+      lint-and-format:
+        patterns:
+          - 'eslint*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - 'prettier*'
+          - 'lint-staged'
+          - 'husky'
+      # Jest exists solely for the Pact suite — keep them together.
+      contract-testing:
+        patterns:
+          - 'jest'
+          - 'ts-jest'
+          - '@types/jest'
+          - '@pact-foundation/*'
+
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
