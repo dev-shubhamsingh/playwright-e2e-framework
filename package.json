@@ -17,6 +17,7 @@
     "tars:select": "tsx tars/engine/select.ts",
     "tars:quarantine": "tsx tars/engine/quarantine.ts",
     "tars:dashboard": "tsx tars/engine/dashboard.ts",
+    "tars:ledger": "tsx tars/engine/ledger.ts",
     "perf:load": "k6 run tests/dummyjson/performance/load.ts",
     "perf:stress": "k6 run tests/dummyjson/performance/stress.ts",
     "perf:spike": "k6 run tests/dummyjson/performance/spike.ts",
