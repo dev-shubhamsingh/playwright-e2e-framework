@@ -16,7 +16,13 @@ import { z } from 'zod';
  */
 dotenv.config();
 
-const envSchema = z.object({
+/**
+ * The environment contract. Exported so its rules can be exercised directly —
+ * `envSchema.safeParse({ ... })` on an explicit object — rather than by mutating
+ * `process.env` and re-importing this module, which is order-dependent and
+ * leaks between tests.
+ */
+export const envSchema = z.object({
   // SauceDemo UI module
   BASE_URL: z.string().url().default('https://www.saucedemo.com'),
   TEST_USER: z.string().min(1).default('standard_user'),
@@ -28,13 +34,23 @@ const envSchema = z.object({
   DUMMYJSON_PASSWORD: z.string().min(1).default('emilyspass'),
 });
 
+/**
+ * Render a parse failure as a readable, multi-line message listing *every*
+ * invalid field — not just the first — so one run surfaces all misconfiguration.
+ * Exported alongside the schema so the message format is itself testable.
+ */
+export function formatEnvIssues(error: z.ZodError): string {
+  return error.issues
+    .map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`)
+    .join('\n');
+}
+
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  const issues = parsed.error.issues
-    .map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`)
-    .join('\n');
-  throw new Error(`Invalid environment configuration:\n${issues}`);
+  throw new Error(
+    `Invalid environment configuration:\n${formatEnvIssues(parsed.error)}`,
+  );
 }
 
 export const env = parsed.data;
