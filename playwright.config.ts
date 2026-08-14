@@ -6,12 +6,15 @@ import { env } from './src/core/config/env';
 const STORAGE_STATE = path.join(process.cwd(), '.auth', 'standard_user.json');
 
 // Specs the cross-browser UI projects must NOT run: the login flow (needs a
-// clean session), the setup file, API specs, and the specialised visual /
-// accessibility suites (each has its own dedicated, Chromium-only project).
+// clean session), the setup file, API specs, framework unit tests (no browser
+// needed — they'd run once per browser for nothing), and the specialised
+// visual / accessibility suites (each has its own dedicated, Chromium-only
+// project).
 const UI_TEST_IGNORE = [
   '**/login.spec.ts',
   '**/auth.setup.ts',
   '**/dummyjson/**',
+  '**/unit/**',
   '**/visual/**',
   '**/a11y/**',
 ];
@@ -44,6 +47,18 @@ export default defineConfig({
   },
 
   projects: [
+    // ── UNIT: the framework's own code ────────────────────────────────────
+    // No browser, no network, no fixtures — pure functions and framework
+    // classes (helpers, ApiClient, env schema, the TARS engines and reporter).
+    // Runs on Playwright's runner rather than Jest so there is one reporting
+    // pipeline: these tests show up in the HTML report, Allure, and Mission
+    // Control alongside everything else. Jest stays scoped to the Pact suite,
+    // which needs it for the mock-server lifecycle.
+    {
+      name: 'unit',
+      testMatch: '**/unit/**/*.spec.ts',
+    },
+
     // ── SETUP: authenticate once, save session to .auth/ ──────────────────
     // Modern pattern: a real test (visible in reports) that other projects
     // depend on. Reuses the LoginPage page object.

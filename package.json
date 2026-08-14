@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "test": "playwright test",
+    "test:unit": "playwright test --project=unit",
     "test:api": "playwright test --project=api",
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
@@ -16,6 +17,7 @@
     "tars:select": "tsx tars/engine/select.ts",
     "tars:quarantine": "tsx tars/engine/quarantine.ts",
     "tars:dashboard": "tsx tars/engine/dashboard.ts",
+    "tars:ledger": "tsx tars/engine/ledger.ts",
     "perf:load": "k6 run tests/dummyjson/performance/load.ts",
     "perf:stress": "k6 run tests/dummyjson/performance/stress.ts",
     "perf:spike": "k6 run tests/dummyjson/performance/spike.ts",
@@ -41,6 +43,9 @@
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "keywords": [
     "playwright",

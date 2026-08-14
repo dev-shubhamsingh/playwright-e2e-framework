@@ -1,10 +1,12 @@
 # TARS — Framework Architecture
 
-> Version-controlled mirror of `.kiro/steering/framework-architecture.md` (the
-> file Kiro loads). Kept in sync.
+> **Canon.** Where new code goes and what shape it takes. See
+> [persona.md](./persona.md) for operating principles and
+> [test-patterns.md](./test-patterns.md) for spec authoring.
 
-Playwright + TypeScript test framework. The git repo lives in the `playwright/`
-subfolder of the workspace. Run all commands from there (`cd playwright`).
+Playwright + TypeScript test framework. This directory's parent is the git
+repository root — run every command from there. There is no subfolder to change
+into.
 
 ## Layout
 

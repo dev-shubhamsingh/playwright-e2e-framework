@@ -6,7 +6,12 @@
  * the same test steps produce different outcomes depending on the user.
  *
  * All users share the same password: secret_sauce
+ *
+ * The standard user's credentials come from `@core/config/env` so there is one
+ * validated source of truth (and one set of defaults). The other accounts are
+ * fixtures of the target app itself — their usernames are not configurable.
  */
+import { env } from '@core/config/env';
 
 export interface User {
   username: string;
@@ -19,8 +24,8 @@ export const USERS = {
    * Standard working user — all flows should pass.
    */
   standard: {
-    username: process.env.TEST_USER ?? 'standard_user',
-    password: process.env.TEST_PASSWORD ?? 'secret_sauce',
+    username: env.TEST_USER,
+    password: env.TEST_PASSWORD,
     description: 'Standard user with full access',
   },
 

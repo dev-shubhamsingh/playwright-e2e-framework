@@ -9,6 +9,17 @@ on:
   schedule:
     - cron: '0 2 * * *'
 
+# A newer push to the same branch makes the in-flight run obsolete. Cancelling
+# it frees the runner instead of testing a commit nobody is waiting on.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Shard count for the UI suite. Playwright splits by file, so this only helps
+  # while there are at least this many spec files.
+  UI_SHARDS: 2
+
 jobs:
   # ── Type-check: shared gate, runs first ──────────────────────────────────
   typecheck:
@@ -19,32 +30,122 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run format:check
 
-  # ── UI suite (Chromium) ───────────────────────────────────────────────────
-  test-ui:
-    name: UI - Chromium
+  # ── Framework unit tests: the framework's own code ────────────────────────
+  # No browser, no network — runs in about a second. Deliberately first among
+  # the test jobs: if ApiClient's retry logic or the selection rules are broken,
+  # every downstream result is suspect.
+  test-unit:
+    name: Unit - framework code
     needs: typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - name: Run framework unit suite
+        run: npm run test:unit
 
-      - name: Run UI suite (login + authenticated)
-        run: npx playwright test --project=login --project=authenticated
+  # ── UI suite (Chromium), sharded ──────────────────────────────────────────
+  # Each shard writes a blob report rather than HTML; `merge-reports` combines
+  # them afterwards into one report AND one Mission Control brief covering the
+  # whole run. Per-shard briefs would each describe a fraction of the suite.
+  test-ui:
+    name: UI - Chromium (${{ matrix.shard }}/2)
+    needs: [typecheck, test-unit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
 
-      - name: Upload Playwright HTML report
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Browser binaries are ~150MB and unchanged between runs; downloading them
+      # every job was the single largest fixed cost in this workflow.
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}-chromium
+
+      - name: Install Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      # A cache hit restores the binaries but not the OS-level shared libraries.
+      - name: Install system dependencies
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run UI suite (login + authenticated), shard ${{ matrix.shard }}
+        run: |
+          npx playwright test \
+            --project=login --project=authenticated \
+            --shard=${{ matrix.shard }}/${{ env.UI_SHARDS }} \
+            --reporter=blob
+
+      - name: Upload blob report
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
+        with:
+          name: blob-report-ui-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 3
+
+  # ── Merge the UI shards into one report + one Mission Control brief ───────
+  report-ui:
+    name: UI report + Mission Control
+    needs: test-ui
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Download all UI blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-ui-*
+          merge-multiple: true
+
+      # Running the custom reporter here rather than per shard means the brief
+      # describes the whole UI run — correct pass and flake rates, not a slice.
+      - name: Merge into HTML + Allure + Mission Control
+        run: |
+          npx playwright merge-reports \
+            --reporter=html,allure-playwright,./tars/reporter/TarsReporter.ts \
+            ./all-blob-reports
+
+      - name: Upload merged Playwright HTML report
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report-ui
           path: playwright-report/
@@ -52,30 +153,47 @@ jobs:
 
       - name: Upload Allure results
         uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
         with:
           name: allure-results-ui
           path: allure-results/
           retention-days: 14
 
+      - name: Publish Mission Control brief to the run summary
+        if: ${{ !cancelled() }}
+        run: cat tars-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Mission Control artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: tars-brief-ui
+          path: |
+            tars-report.md
+            tars-results.json
+          retention-days: 14
+
   # ── API suite (no browser) ────────────────────────────────────────────────
   test-api:
     name: API - DummyJSON
-    needs: typecheck
+    needs: [typecheck, test-unit]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      # API tests use Playwright's request fixture — no browser needed.
-      - run: npx playwright install --with-deps chromium
+      # The API project uses Playwright's request fixture only — no browser
+      # binary is needed, so none is installed.
 
       - name: Run API suite
-        run: npx playwright test --project=api
+        run: npm run test:api
+
+      - name: Publish Mission Control brief to the run summary
+        if: ${{ !cancelled() }}
+        run: cat tars-report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
@@ -94,16 +212,17 @@ jobs:
           retention-days: 14
 
   # ── Contract suite (Pact, Jest) ───────────────────────────────────────────
+  # The only suite that needs neither a browser nor the network.
   test-contract:
     name: Contract - Pact
-    needs: typecheck
+    needs: [typecheck, test-unit]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
 
@@ -121,17 +240,35 @@ jobs:
   # ── Accessibility suite (axe-core, Chromium) ──────────────────────────────
   test-a11y:
     name: Accessibility - axe-core
-    needs: typecheck
+    needs: [typecheck, test-unit]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}-chromium
+
+      - name: Install Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install system dependencies
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - name: Run accessibility suite
         run: npm run test:a11y
@@ -144,7 +281,111 @@ jobs:
           path: allure-results/
           retention-days: 14
 
+  # ── TARS engines: risk-based selection + the quarantine ledger ────────────
+  # This is the job that closes the autonomous loop in the pipeline. It is
+  # informational by design: selection REPORTS what it would run rather than
+  # narrowing the gate, because a selection bug that silently skips tests is a
+  # far worse outcome than a slower pipeline. Promote it to a gate only once the
+  # mapping has earned that trust.
+  tars:
+    name: TARS - selection + ledger
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Selection diffs against the base, so it needs more than a shallow
+          # single-commit clone.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Risk-based selection for this change
+        run: |
+          BASE="${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
+          {
+            echo '## 🤖 TARS — Risk-Based Selection'
+            echo
+            echo '```'
+            npx tsx tars/engine/select.ts --base "$BASE"
+            echo '```'
+            echo
+            echo '> Informational. The gate still runs the full suite — selection'
+            echo '> narrows a run only where a wrong answer cannot hide a defect.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Surface the quarantine ledger
+        run: npm run tars:ledger
+
+      # Fails the job if a test has flaked 10+ times and is still unresolved.
+      # A ledger nobody acts on is just a list.
+      - name: Fail if a quarantined test has been rotting
+        run: npx tsx tars/engine/ledger.ts --check --fail-at 10
+
+  # ── Publish the run's output to GitHub Pages (main only) ──────────────────
+  # The reports are the product's output; without this they are only visible to
+  # someone who clones the repo and runs a suite. Publishes the Mission Control
+  # dashboard as the landing page with the full Playwright HTML report beside it.
+  #
+  # REQUIRES a one-time manual step: repository Settings → Pages → Source =
+  # "GitHub Actions". Until that is set, this job fails at the deploy step and
+  # nothing else is affected.
+  publish:
+    name: Publish reports to Pages
+    needs: [report-ui, test-api]
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Download the merged UI report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-ui
+          path: site/report
+
+      - name: Download the Mission Control brief
+        uses: actions/download-artifact@v4
+        with:
+          name: tars-brief-ui
+          path: brief
+
+      - name: Render the dashboard as the landing page
+        run: |
+          cp brief/tars-results.json tars-results.json
+          TARS_REPORT_PATH=./report/ npm run tars:dashboard
+          cp tars-dashboard.html site/index.html
+          cp brief/tars-report.md site/brief.md
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
   # ── Cross-browser matrix: scheduled + manual only ─────────────────────────
+  # NOT gating. Every test in the webkit and mobile projects currently hits the
+  # 30s timeout on the runner while passing locally; the cause is undiagnosed
+  # (see .claude/skills/test-author/references/ci-gates.md). Do not re-gate these
+  # without a real diagnosis.
   cross-browser:
     name: Cross-browser (${{ matrix.project }})
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
@@ -159,10 +400,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps
+
+      # Evidence-gathering for the unresolved timeout: if the target is
+      # unreachable from the runner, that shows here rather than as 30s timeouts.
+      - name: Probe target reachability from the runner
+        continue-on-error: true
+        run: |
+          echo "### Reachability — ${{ matrix.project }}" >> "$GITHUB_STEP_SUMMARY"
+          curl -sS -o /dev/null -w 'saucedemo.com  HTTP %{http_code} in %{time_total}s\n' \
+            https://www.saucedemo.com | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Run ${{ matrix.project }} suite
         run: npx playwright test --project=${{ matrix.project }}

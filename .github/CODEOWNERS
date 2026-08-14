@@ -1,0 +1,13 @@
+# Default owner for everything in this repository.
+*                       @dev-shubhamsingh
+
+# The canon and the agent skills define how work is done here — changes to them
+# change the standard every other change is reviewed against.
+/tars/persona.md        @dev-shubhamsingh
+/tars/architecture.md   @dev-shubhamsingh
+/tars/test-patterns.md  @dev-shubhamsingh
+/.claude/skills/        @dev-shubhamsingh
+/CLAUDE.md              @dev-shubhamsingh
+
+# CI defines what actually gates a change.
+/.github/workflows/     @dev-shubhamsingh
