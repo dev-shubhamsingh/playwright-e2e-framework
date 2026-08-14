@@ -27,6 +27,8 @@ import { fmtMs } from '../lib/format.ts';
 export interface TestRecord {
   title: string;
   project: string;
+  /** Repo-relative spec path, so downstream engines can map a result to a file. */
+  file: string;
   tags: string[];
   status: TestResult['status'];
   outcome: ReturnType<TestCase['outcome']>;
@@ -48,10 +50,28 @@ export interface TarsResults {
   passRate: number;
   flakeRate: number;
   durationMs: number;
-  flaky: { project: string; title: string }[];
+  flaky: { project: string; title: string; file: string }[];
+  /**
+   * Tests that failed outright (outcome 'unexpected'). Needed so risk-based
+   * selection can be audited against what actually broke — see engine/shadow.ts.
+   */
+  failures: { project: string; title: string; file: string }[];
   byProject: { name: string; count: number }[];
   byTag: { name: string; count: number }[];
   slowest: { title: string; project: string; durationMs: number }[];
+}
+
+/**
+ * Reduce an absolute spec path to repo-relative, so the value is stable across
+ * machines and usable as a key by the selection and trend engines.
+ */
+export function relativeSpecPath(absolute: string): string {
+  if (!absolute) return '';
+  const cwd = process.cwd();
+  const rel = absolute.startsWith(cwd)
+    ? absolute.slice(cwd.length).replace(/^[/\\]/, '')
+    : absolute;
+  return rel.split(path.sep).join('/');
 }
 
 /** The signal set derived from a run's records. Pure — see `computeSignals`. */
@@ -66,6 +86,7 @@ export interface Signals {
   /** Percentage string, two decimals, e.g. '4.00'. */
   flakeRate: string;
   flaky: TestRecord[];
+  failures: TestRecord[];
   slowest: TestRecord[];
   byProject: Map<string, number>;
   byTag: Map<string, number>;
@@ -99,6 +120,7 @@ export function computeSignals(recs: TestRecord[]): Signals {
   const passed = recs.filter((r) => r.outcome === 'expected').length;
   const failed = recs.filter((r) => r.outcome === 'unexpected').length;
   const flaky = recs.filter((r) => r.outcome === 'flaky');
+  const failures = recs.filter((r) => r.outcome === 'unexpected');
   const skipped = recs.filter((r) => r.outcome === 'skipped').length;
   const executed = total - skipped;
 
@@ -111,6 +133,7 @@ export function computeSignals(recs: TestRecord[]): Signals {
     passRate: executed ? ((passed / executed) * 100).toFixed(1) : '0.0',
     flakeRate: executed ? ((flaky.length / executed) * 100).toFixed(2) : '0.00',
     flaky,
+    failures,
     slowest: [...recs].sort((a, b) => b.durationMs - a.durationMs).slice(0, 5),
     byProject: groupCounts(recs, (r) => r.project),
     byTag: groupCounts(recs, (r) =>
@@ -139,6 +162,7 @@ export default class TarsReporter implements Reporter {
       this.records.set(test.id, {
         title: test.title,
         project: test.titlePath()[1] || 'unknown',
+        file: relativeSpecPath(test.location?.file ?? ''),
         tags: test.tags ?? [],
         status: result.status,
         outcome: test.outcome(),
@@ -180,6 +204,7 @@ export default class TarsReporter implements Reporter {
       passRate,
       flakeRate,
       flaky,
+      failures,
       slowest,
       byProject,
       byTag,
@@ -258,7 +283,16 @@ export default class TarsReporter implements Reporter {
       passRate: Number(passRate),
       flakeRate: Number(flakeRate),
       durationMs: wallMs,
-      flaky: flaky.map((r) => ({ project: r.project, title: r.title })),
+      flaky: flaky.map((r) => ({
+        project: r.project,
+        title: r.title,
+        file: r.file,
+      })),
+      failures: failures.map((r) => ({
+        project: r.project,
+        title: r.title,
+        file: r.file,
+      })),
       byProject: [...byProject.entries()].map(([name, count]) => ({
         name,
         count,

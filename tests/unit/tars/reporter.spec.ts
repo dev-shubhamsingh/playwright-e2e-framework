@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { TestCase, TestResult } from '@playwright/test/reporter';
 import TarsReporter, {
   computeSignals,
+  relativeSpecPath,
   type TestRecord,
 } from '../../../tars/reporter/TarsReporter';
 
@@ -22,6 +23,7 @@ function record(overrides: Partial<TestRecord> = {}): TestRecord {
   return {
     title: 'a test',
     project: 'authenticated',
+    file: 'tests/saucedemo/e2e/cart.spec.ts',
     tags: [],
     status: 'passed',
     outcome: 'expected',
@@ -110,6 +112,62 @@ test.describe('computeSignals — counting', { tag: '@regression' }, () => {
     expect(empty.total).toBe(0);
     expect(empty.passRate).toBe('0.0');
     expect(empty.flakeRate).toBe('0.00');
+  });
+});
+
+test.describe('computeSignals — failures list', { tag: '@regression' }, () => {
+  test('records which tests failed, with their spec file', () => {
+    // The count alone is not enough: risk-based selection has to be audited
+    // against the specific files that broke. See engine/shadow.ts.
+    const signals = computeSignals([
+      record({ title: 'fine' }),
+      record({
+        title: 'broken',
+        file: 'tests/saucedemo/e2e/checkout.spec.ts',
+        status: 'failed',
+        outcome: 'unexpected',
+      }),
+    ]);
+
+    expect(signals.failures).toHaveLength(1);
+    expect(signals.failures[0]).toMatchObject({
+      title: 'broken',
+      file: 'tests/saucedemo/e2e/checkout.spec.ts',
+    });
+  });
+
+  test('a flaky test is not counted as a failure', () => {
+    const signals = computeSignals([
+      record({
+        title: 'shaky',
+        status: 'passed',
+        outcome: 'flaky',
+        retries: 1,
+      }),
+    ]);
+
+    expect(signals.failures).toHaveLength(0);
+    expect(signals.flaky).toHaveLength(1);
+  });
+});
+
+test.describe('relativeSpecPath', { tag: '@regression' }, () => {
+  test('strips the working directory', () => {
+    expect(relativeSpecPath(`${process.cwd()}/tests/unit/x.spec.ts`)).toBe(
+      'tests/unit/x.spec.ts',
+    );
+  });
+
+  test('leaves an already-relative path alone', () => {
+    expect(relativeSpecPath('tests/unit/x.spec.ts')).toBe(
+      'tests/unit/x.spec.ts',
+    );
+  });
+
+  test('returns an empty string for a missing location', () => {
+    // test.location can be undefined; the reporter must not produce "undefined"
+    // as a file key.
+    expect(relativeSpecPath('')).toBe('');
   });
 });
 
