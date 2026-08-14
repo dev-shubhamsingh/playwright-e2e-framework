@@ -375,7 +375,7 @@ jobs:
           cp brief/tars-report.md site/brief.md
 
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: deploy
