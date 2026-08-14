@@ -63,9 +63,10 @@ test.describe('Checkout', { tag: '@regression' }, () => {
           expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
             'Thank you for your order',
           );
-          expect(await checkoutCompletePage.isConfirmationImageVisible()).toBe(
-            true,
-          );
+          // Web-first, not `expect(await …isVisible()).toBe(true)`: the
+          // confirmation image has zero height until its resource loads, so a
+          // one-shot read races the load and fails intermittently. This retries.
+          await expect(checkoutCompletePage.confirmationImage).toBeVisible();
         });
       },
     );
