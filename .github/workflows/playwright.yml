@@ -130,7 +130,7 @@ jobs:
       - run: npm ci
 
       - name: Download all UI blob reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-blob-reports
           pattern: blob-report-ui-*
@@ -356,13 +356,13 @@ jobs:
       - run: npm ci
 
       - name: Download the merged UI report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: playwright-report-ui
           path: site/report
 
       - name: Download the Mission Control brief
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: tars-brief-ui
           path: brief
