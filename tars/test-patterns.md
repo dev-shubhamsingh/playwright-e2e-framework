@@ -1,7 +1,11 @@
 # TARS — Test-Authoring Patterns
 
-> Version-controlled mirror of `.kiro/steering/playwright-test-patterns.md` (the
-> file Kiro loads for `**/*.spec.ts`). Kept in sync.
+> **Canon** for `**/*.spec.ts` and `**/*.pact.ts`. See
+> [architecture.md](./architecture.md) for where code goes and
+> [persona.md](./persona.md) for operating principles.
+>
+> The `.claude/skills/` workflows cite this file rather than restating it. When
+> the two disagree, this file wins and the drift is worth reporting.
 
 Apply these when writing or editing spec files.
 
