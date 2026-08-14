@@ -122,7 +122,12 @@ jobs:
   report-ui:
     name: UI report + Mission Control
     needs: test-ui
-    if: ${{ !cancelled() }}
+    # `!cancelled()` on purpose: the report is most valuable when the suite FAILED,
+    # so this must not require test-ui to succeed. But `!cancelled()` alone also
+    # overrides the implicit needs-check, so it ran when test-ui was *skipped*
+    # (typecheck failed upstream) and died with no blob artifacts to merge.
+    # Excluding 'skipped' keeps the intent without that failure mode.
+    if: ${{ !cancelled() && needs.test-ui.result != 'skipped' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
