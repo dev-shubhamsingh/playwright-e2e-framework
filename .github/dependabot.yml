@@ -1,11 +1,22 @@
 version: 2
+
+# Grouping strategy exists for one reason: every npm update rewrites
+# package-lock.json, and every Actions update rewrites the same workflow files —
+# so any two ungrouped PRs conflict *by construction*, and only one can ever
+# merge cleanly. Minimising the number of concurrent PRs matters far more than
+# granular per-dependency PRs.
+#
+# Every group below ends in a catch-all, because Dependabot only groups what a
+# pattern claims: anything unmatched still gets its own PR, which is how a first
+# run produced ten mutually-conflicting ones.
+
 updates:
   - package-ecosystem: npm
     directory: '/'
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     commit-message:
       prefix: build
       include: scope
@@ -17,6 +28,15 @@ updates:
           - '@playwright/*'
           - 'playwright'
           - 'allure-playwright'
+      # Jest exists solely for the Pact suite — keep them together, because a
+      # Jest major and a Pact major landing separately is a broken contract
+      # suite with two candidate causes.
+      contract-testing:
+        patterns:
+          - 'jest'
+          - 'ts-jest'
+          - '@types/jest'
+          - '@pact-foundation/*'
       # Lint and format tooling churns often and never affects test behaviour.
       lint-and-format:
         patterns:
@@ -26,17 +46,34 @@ updates:
           - 'prettier*'
           - 'lint-staged'
           - 'husky'
-      # Jest exists solely for the Pact suite — keep them together.
-      contract-testing:
+      # Catch-all, and split by risk. Groups are matched in order, so these
+      # collect whatever the groups above did not claim.
+      #
+      # Majors are separated deliberately: riding a major along with a pile of
+      # patches is how Pact 16 -> 17 and Jest 29 -> 30 reached main without
+      # anyone reading them. They passed — but that was luck, not review.
+      remaining-minor-and-patch:
         patterns:
-          - 'jest'
-          - 'ts-jest'
-          - '@types/jest'
-          - '@pact-foundation/*'
+          - '*'
+        update-types:
+          - minor
+          - patch
+      remaining-major:
+        patterns:
+          - '*'
+        update-types:
+          - major
 
   - package-ecosystem: github-actions
     directory: '/'
     schedule:
       interval: monthly
+    # One PR for every Actions bump. Ungrouped, each action became its own PR
+    # (five of them), and all five edited the same workflow files.
+    open-pull-requests-limit: 1
     commit-message:
       prefix: ci
+    groups:
+      github-actions:
+        patterns:
+          - '*'
