@@ -36,6 +36,21 @@ before a single browser launches.
 Two of those rows are the interesting ones, and both are honest gaps rather than
 oversights.
 
+### Reporter gotcha: Allure cannot ride the blob merge
+
+The sharded UI run writes blob reports, and `merge-reports` replays them through
+the real reporters afterwards. `allure-playwright@3.10.2` **exits non-zero under
+`merge-reports` even on a fully green run** — silently, with no diagnostic —
+while still writing correct results.
+
+So the merge is two steps: `html` + the TARS reporter (whose exit code gates),
+then Allure separately with its exit code tolerated but its _output_ asserted. If
+Allure ever fails for a real reason it writes nothing, and that still fails the
+job.
+
+Do not fold Allure back into the first command. It works fine in an ordinary
+`playwright test` run — the incompatibility is specific to the merge path.
+
 ### Visual regression is not gated
 
 There is no visual job. The `visual` project runs only when someone runs

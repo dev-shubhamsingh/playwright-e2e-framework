@@ -147,11 +147,29 @@ jobs:
 
       # Running the custom reporter here rather than per shard means the brief
       # describes the whole UI run — correct pass and flake rates, not a slice.
-      - name: Merge into HTML + Allure + Mission Control
+      # Two steps, not one, because allure-playwright@3.10.2 exits non-zero under
+      # `merge-reports` even on a fully green run — silently, with no diagnostic —
+      # while still writing correct results. Bundling it with the gating reporters
+      # made a passing UI suite fail the job.
+      - name: Merge into HTML + Mission Control
         run: |
           npx playwright merge-reports \
-            --reporter=html,allure-playwright,./tars/reporter/TarsReporter.ts \
+            --reporter=html,./tars/reporter/TarsReporter.ts \
             ./all-blob-reports
+
+      # Its exit code is tolerated, but the OUTPUT is asserted: if Allure ever
+      # fails for a real reason it writes nothing, and that still fails the job.
+      # Masking the exit code without checking the artifact would hide that.
+      - name: Merge Allure results
+        run: |
+          npx playwright merge-reports \
+            --reporter=allure-playwright ./all-blob-reports || true
+          count=$(ls -1 allure-results 2>/dev/null | wc -l)
+          echo "allure result files: $count"
+          if [ "$count" -eq 0 ]; then
+            echo "::error::allure-playwright produced no results from the merge"
+            exit 1
+          fi
 
       - name: Upload merged Playwright HTML report
         uses: actions/upload-artifact@v7
