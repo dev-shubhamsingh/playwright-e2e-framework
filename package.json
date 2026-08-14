@@ -57,7 +57,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^10.0.1",
-    "@faker-js/faker": "^10.4.0",
+    "@faker-js/faker": "^10.5.0",
     "@pact-foundation/pact": "^16.5.0",
     "@playwright/test": "^1.60.0",
     "@types/jest": "^29.5.14",
