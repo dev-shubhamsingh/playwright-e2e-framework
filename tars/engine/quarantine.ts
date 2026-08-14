@@ -18,16 +18,23 @@ import path from 'node:path';
  *   npx tsx tars/engine/quarantine.ts
  */
 
-interface RunResults {
+export interface RunResults {
   flaky: { project: string; title: string }[];
 }
 
-interface QuarantineEntry {
+export interface QuarantineEntry {
   project: string;
   title: string;
   flakeCount: number;
   firstSeen: string;
   lastSeen: string;
+}
+
+/** Result of folding a run's flakes into the ledger. */
+export interface FoldResult {
+  ledger: QuarantineEntry[];
+  added: string[];
+  updated: string[];
 }
 
 const RESULTS_FILE = path.join(process.cwd(), 'tars-results.json');
@@ -43,26 +50,26 @@ function readJson<T>(file: string, fallback: T): T {
   }
 }
 
-function keyOf(e: { project: string; title: string }): string {
+export function keyOf(e: { project: string; title: string }): string {
   return `${e.project}␟${e.title}`;
 }
 
-function main(): void {
-  const log = console.log;
-  const results = readJson<RunResults>(RESULTS_FILE, { flaky: [] });
-
-  if (!results.flaky.length) {
-    log('\n🤖 TARS — Auto-Quarantine\n   No flaky tests in the last run. ✅\n');
-    return;
-  }
-
-  const ledger = readJson<QuarantineEntry[]>(LEDGER_FILE, []);
-  const byKey = new Map(ledger.map((e) => [keyOf(e), e]));
-  const now = new Date().toISOString();
+/**
+ * Fold a run's flaky tests into an existing ledger.
+ *
+ * Pure: no I/O, and `now` is injected rather than read from the clock, so the
+ * result is fully determined by its inputs. Never mutates the input ledger.
+ */
+export function fold(
+  ledger: QuarantineEntry[],
+  flaky: RunResults['flaky'],
+  now: string,
+): FoldResult {
+  const byKey = new Map(ledger.map((e) => [keyOf(e), { ...e }]));
   const added: string[] = [];
   const updated: string[] = [];
 
-  for (const f of results.flaky) {
+  for (const f of flaky) {
     const existing = byKey.get(keyOf(f));
     if (existing) {
       existing.flakeCount += 1;
@@ -80,8 +87,30 @@ function main(): void {
     }
   }
 
-  const next = [...byKey.values()].sort((a, b) => b.flakeCount - a.flakeCount);
-  writeFileSync(LEDGER_FILE, JSON.stringify(next, null, 2) + '\n');
+  return {
+    ledger: [...byKey.values()].sort((a, b) => b.flakeCount - a.flakeCount),
+    added,
+    updated,
+  };
+}
+
+function main(): void {
+  const log = console.log;
+  const results = readJson<RunResults>(RESULTS_FILE, { flaky: [] });
+
+  if (!results.flaky.length) {
+    log('\n🤖 TARS — Auto-Quarantine\n   No flaky tests in the last run. ✅\n');
+    return;
+  }
+
+  const existing = readJson<QuarantineEntry[]>(LEDGER_FILE, []);
+  const { ledger, added, updated } = fold(
+    existing,
+    results.flaky,
+    new Date().toISOString(),
+  );
+
+  writeFileSync(LEDGER_FILE, JSON.stringify(ledger, null, 2) + '\n');
 
   log('\n🤖 TARS — Auto-Quarantine');
   log(`   flaky this run: ${results.flaky.length}`);
@@ -89,7 +118,11 @@ function main(): void {
   added.forEach((t) => log(`     + ${t}`));
   log(`   re-offenders updated: ${updated.length}`);
   updated.forEach((t) => log(`     ↑ ${t}`));
-  log(`   ledger: tars/quarantine.json (${next.length} total)\n`);
+  log(`   ledger: tars/quarantine.json (${ledger.length} total)\n`);
 }
 
-main();
+// Only run the CLI when executed directly, so `fold()` above can be imported by
+// tests without this module reading or writing files at import time.
+if (require.main === module) {
+  main();
+}

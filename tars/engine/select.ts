@@ -19,7 +19,7 @@ import { execSync } from 'node:child_process';
  * be wired into CI to shard PR runs.
  */
 
-type Selection = { paths: string[]; full: boolean; reason: string };
+export type Selection = { paths: string[]; full: boolean; reason: string };
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -45,7 +45,7 @@ function changedFiles(base: string): string[] {
 }
 
 /** Files that force a full run — they can affect anything. */
-function isGlobal(file: string): boolean {
+export function isGlobal(file: string): boolean {
   return (
     file.startsWith('src/core/') ||
     file.startsWith('src/shared/') ||
@@ -56,7 +56,7 @@ function isGlobal(file: string): boolean {
   );
 }
 
-function select(files: string[]): Selection {
+export function select(files: string[]): Selection {
   if (files.length === 0) {
     return { paths: [], full: false, reason: 'no changes detected' };
   }
@@ -124,4 +124,8 @@ function main(): void {
   log('');
 }
 
-main();
+// Only run the CLI when executed directly, so the pure `select()` above can be
+// imported by tests without this module performing git I/O at import time.
+if (require.main === module) {
+  main();
+}

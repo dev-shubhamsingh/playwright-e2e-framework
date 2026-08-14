@@ -8,6 +8,7 @@ import type {
 } from '@playwright/test/reporter';
 import { writeFileSync } from 'fs';
 import path from 'path';
+import { fmtMs } from '../lib/format.ts';
 
 /**
  * TARS Mission Control — a custom Playwright reporter that turns a raw test run
@@ -23,7 +24,7 @@ import path from 'path';
  * the suite.
  */
 
-interface TestRecord {
+export interface TestRecord {
   title: string;
   project: string;
   tags: string[];
@@ -51,6 +52,71 @@ export interface TarsResults {
   byProject: { name: string; count: number }[];
   byTag: { name: string; count: number }[];
   slowest: { title: string; project: string; durationMs: number }[];
+}
+
+/** The signal set derived from a run's records. Pure — see `computeSignals`. */
+export interface Signals {
+  total: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  executed: number;
+  /** Percentage string, one decimal, e.g. '96.0'. */
+  passRate: string;
+  /** Percentage string, two decimals, e.g. '4.00'. */
+  flakeRate: string;
+  flaky: TestRecord[];
+  slowest: TestRecord[];
+  byProject: Map<string, number>;
+  byTag: Map<string, number>;
+}
+
+function groupCounts(
+  recs: TestRecord[],
+  key: (r: TestRecord) => string,
+): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const r of recs) {
+    map.set(key(r), (map.get(key(r)) ?? 0) + 1);
+  }
+  return map;
+}
+
+/**
+ * Derive every reported signal from a run's records. Pure and exported so the
+ * counting rules — which are subtle and load-bearing — are directly testable.
+ *
+ * Key decisions encoded here:
+ *   - `passed`/`failed`/`flaky` come from Playwright's *outcome*, not the raw
+ *     status, so a test that failed then passed on retry counts as flaky rather
+ *     than as both a pass and a fail.
+ *   - Skipped tests are excluded from the pass-rate denominator, so skipping
+ *     tests can never inflate the pass rate.
+ *   - Zero executed tests yields '0.0' rather than NaN.
+ */
+export function computeSignals(recs: TestRecord[]): Signals {
+  const total = recs.length;
+  const passed = recs.filter((r) => r.outcome === 'expected').length;
+  const failed = recs.filter((r) => r.outcome === 'unexpected').length;
+  const flaky = recs.filter((r) => r.outcome === 'flaky');
+  const skipped = recs.filter((r) => r.outcome === 'skipped').length;
+  const executed = total - skipped;
+
+  return {
+    total,
+    passed,
+    failed,
+    skipped,
+    executed,
+    passRate: executed ? ((passed / executed) * 100).toFixed(1) : '0.0',
+    flakeRate: executed ? ((flaky.length / executed) * 100).toFixed(2) : '0.00',
+    flaky,
+    slowest: [...recs].sort((a, b) => b.durationMs - a.durationMs).slice(0, 5),
+    byProject: groupCounts(recs, (r) => r.project),
+    byTag: groupCounts(recs, (r) =>
+      r.tags.length ? r.tags.join(' ') : '(untagged)',
+    ),
+  };
 }
 
 export default class TarsReporter implements Reporter {
@@ -105,26 +171,20 @@ export default class TarsReporter implements Reporter {
     data: TarsResults;
   } {
     const recs = [...this.records.values()];
-    const total = recs.length;
-    const passed = recs.filter((r) => r.outcome === 'expected').length;
-    const failed = recs.filter((r) => r.outcome === 'unexpected').length;
-    const flaky = recs.filter((r) => r.outcome === 'flaky');
-    const skipped = recs.filter((r) => r.outcome === 'skipped').length;
-    const executed = total - skipped;
-    const passRate = executed ? ((passed / executed) * 100).toFixed(1) : '0.0';
-    const flakeRate = executed
-      ? ((flaky.length / executed) * 100).toFixed(2)
-      : '0.00';
+    const {
+      total,
+      passed,
+      failed,
+      skipped,
+      executed,
+      passRate,
+      flakeRate,
+      flaky,
+      slowest,
+      byProject,
+      byTag,
+    } = computeSignals(recs);
     const wallMs = Date.now() - this.startedAt;
-
-    const slowest = [...recs]
-      .sort((a, b) => b.durationMs - a.durationMs)
-      .slice(0, 5);
-
-    const byProject = this.groupCounts((r) => r.project);
-    const byTag = this.groupCounts((r) =>
-      r.tags.length ? r.tags.join(' ') : '(untagged)',
-    );
 
     const verdict =
       runStatus === 'passed'
@@ -214,26 +274,10 @@ export default class TarsReporter implements Reporter {
     return { markdown: md, console: con, data };
   }
 
-  private groupCounts(key: (r: TestRecord) => string): Map<string, number> {
-    const map = new Map<string, number>();
-    for (const r of this.records.values()) {
-      map.set(key(r), (map.get(key(r)) ?? 0) + 1);
-    }
-    return map;
-  }
-
   private table(label: string, counts: Map<string, number>): string {
     const rows = [...counts.entries()]
       .sort((a, b) => b[1] - a[1])
       .map(([k, n]) => `| ${k} | ${n} |`);
     return [`| ${label} | Tests |`, '| --- | --- |', ...rows].join('\n');
   }
-}
-
-function fmtMs(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  const s = ms / 1000;
-  if (s < 60) return `${s.toFixed(1)}s`;
-  const m = Math.floor(s / 60);
-  return `${m}m ${Math.round(s % 60)}s`;
 }
