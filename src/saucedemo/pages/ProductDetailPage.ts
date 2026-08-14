@@ -3,28 +3,29 @@ import { parsePrice } from '@shared/utils';
 import { BasePage } from '@core/ui';
 
 export class ProductDetailPage extends BasePage {
-  private readonly productName: Locator = this.page.getByTestId(
-    'inventory-item-name',
-  );
+  /** Product name. Public for `toHaveText`. */
+  readonly productName: Locator = this.page.getByTestId('inventory-item-name');
   private readonly productDescription: Locator = this.page.getByTestId(
     'inventory-item-desc',
   );
-  private readonly productPrice: Locator = this.page.getByTestId(
+  /** Product price. Public for `toHaveText` / `toContainText`. */
+  readonly productPrice: Locator = this.page.getByTestId(
     'inventory-item-price',
   );
-  private readonly addToCartButton: Locator = this.page.getByRole('button', {
+  /** Add-to-cart button. Public for `toBeVisible` / `toBeHidden`. */
+  readonly addToCartButton: Locator = this.page.getByRole('button', {
     name: /add to cart/i,
   });
-  private readonly removeButton: Locator = this.page.getByRole('button', {
+  /** Remove button. Public for `toBeVisible` / `toBeHidden`. */
+  readonly removeButton: Locator = this.page.getByRole('button', {
     name: /remove/i,
   });
   private readonly backButton: Locator =
     this.page.getByTestId('back-to-products');
   private readonly cartIcon: Locator =
     this.page.getByTestId('shopping-cart-link');
-  private readonly cartBadge: Locator = this.page.getByTestId(
-    'shopping-cart-badge',
-  );
+  /** Cart count badge. Public for `toHaveText`. */
+  readonly cartBadge: Locator = this.page.getByTestId('shopping-cart-badge');
 
   /** Get the displayed product name */
   async getName(): Promise<string> {

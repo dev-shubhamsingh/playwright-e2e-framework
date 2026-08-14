@@ -6,7 +6,8 @@ import { SauceDemoPage } from './SauceDemoPage';
  * URL: /checkout-complete.html
  */
 export class CheckoutCompletePage extends SauceDemoPage {
-  private readonly confirmationHeader: Locator =
+  /** Confirmation header. Public for `toContainText`. */
+  readonly confirmationHeader: Locator =
     this.page.getByTestId('complete-header');
   private readonly confirmationText: Locator =
     this.page.getByTestId('complete-text');

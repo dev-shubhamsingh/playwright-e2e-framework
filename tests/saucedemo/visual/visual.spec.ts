@@ -20,9 +20,9 @@ test.describe('Visual regression', { tag: '@visual' }, () => {
 
   test('inventory page', async ({ authenticatedPage, page }) => {
     // authenticatedPage lands on /inventory.html with an empty cart.
-    await expect(authenticatedPage.getProductCount()).resolves.toBeGreaterThan(
-      0,
-    );
+    // Readiness gate before the screenshot: a locator matcher retries, so the
+    // shot is never taken against a half-rendered page.
+    await expect(authenticatedPage.productList).not.toHaveCount(0);
     await expect(page).toHaveScreenshot('inventory.png', shot);
   });
 
@@ -33,7 +33,7 @@ test.describe('Visual regression', { tag: '@visual' }, () => {
 
   test('empty cart page', async ({ authenticatedPage, cartPage, page }) => {
     await authenticatedPage.goToCart();
-    await expect(cartPage.getPageTitle()).resolves.toBe('Your Cart');
+    await expect(cartPage.pageTitle).toHaveText('Your Cart');
     await expect(page).toHaveScreenshot('cart-empty.png', shot);
   });
 });

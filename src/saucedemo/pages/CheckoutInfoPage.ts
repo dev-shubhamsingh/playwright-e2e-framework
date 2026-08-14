@@ -12,7 +12,8 @@ export class CheckoutInfoPage extends SauceDemoPage {
     this.page.getByTestId('postalCode');
   private readonly continueButton: Locator = this.page.getByTestId('continue');
   private readonly cancelButton: Locator = this.page.getByTestId('cancel');
-  private readonly errorMessage: Locator = this.page.getByTestId('error');
+  /** The validation error banner. Public for web-first negative assertions. */
+  readonly errorMessage: Locator = this.page.getByTestId('error');
 
   /** Fill in all customer information fields */
   async fillInfo(firstName: string, lastName: string, postalCode: string) {

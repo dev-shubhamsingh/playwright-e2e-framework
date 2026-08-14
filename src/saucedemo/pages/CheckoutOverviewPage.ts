@@ -7,10 +7,14 @@ import { SauceDemoPage } from './SauceDemoPage';
  * URL: /checkout-step-two.html
  */
 export class CheckoutOverviewPage extends SauceDemoPage {
-  private readonly cartItems: Locator = this.page.getByTestId('inventory-item');
-  private readonly itemTotal: Locator = this.page.getByTestId('subtotal-label');
-  private readonly taxAmount: Locator = this.page.getByTestId('tax-label');
-  private readonly orderTotal: Locator = this.page.getByTestId('total-label');
+  /** The order line items. Public for `toHaveCount` assertions. */
+  readonly cartItems: Locator = this.page.getByTestId('inventory-item');
+  /** Subtotal label. Public for `toHaveText` / `toContainText`. */
+  readonly itemTotal: Locator = this.page.getByTestId('subtotal-label');
+  /** Tax label. Public for `toHaveText` / `toContainText`. */
+  readonly taxAmount: Locator = this.page.getByTestId('tax-label');
+  /** Order-total label. Public for `toHaveText` / `toContainText`. */
+  readonly orderTotal: Locator = this.page.getByTestId('total-label');
   private readonly finishButton: Locator = this.page.getByTestId('finish');
   private readonly cancelButton: Locator = this.page.getByTestId('cancel');
   private readonly paymentInfo: Locator =

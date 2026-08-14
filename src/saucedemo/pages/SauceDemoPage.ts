@@ -9,7 +9,12 @@ import { BasePage } from '@core/ui';
  * those pages share, so `getPageTitle()` lives in exactly one place.
  */
 export abstract class SauceDemoPage extends BasePage {
-  protected readonly pageTitle: Locator = this.page.getByTestId('title');
+  /**
+   * The standard header title. Public so specs can assert web-first with
+   * `await expect(page.pageTitle).toHaveText('Your Cart')` — a locator matcher
+   * retries, while reading the string through `getPageTitle()` does not.
+   */
+  readonly pageTitle: Locator = this.page.getByTestId('title');
 
   /** The header title text for the current page. */
   async getPageTitle(): Promise<string> {

@@ -3,7 +3,8 @@ import { parsePrice } from '@shared/utils';
 import { SauceDemoPage } from './SauceDemoPage';
 
 export class CartPage extends SauceDemoPage {
-  private readonly cartItems: Locator = this.page.getByTestId('inventory-item');
+  /** The cart line items. Public for `toHaveCount` assertions. */
+  readonly cartItems: Locator = this.page.getByTestId('inventory-item');
   private readonly checkoutButton: Locator = this.page.getByTestId('checkout');
   private readonly continueShoppingButton: Locator =
     this.page.getByTestId('continue-shopping');

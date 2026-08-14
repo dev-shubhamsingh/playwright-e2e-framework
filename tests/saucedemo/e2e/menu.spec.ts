@@ -17,12 +17,12 @@ test.describe('Side Menu', { tag: '@regression' }, () => {
     }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
-      expect(await authenticatedPage.getCartCount()).toBe(2);
+      await expect(authenticatedPage.cartBadge).toHaveText('2');
 
       await menuComponent.resetAppState();
 
       // After reset the badge should be gone
-      expect(await authenticatedPage.isCartBadgeVisible()).toBe(false);
+      await expect(authenticatedPage.cartBadge).toBeHidden();
     });
   });
 
@@ -34,11 +34,13 @@ test.describe('Side Menu', { tag: '@regression' }, () => {
     }) => {
       // Navigate away to a product detail page first
       await authenticatedPage.openProductByName(PRODUCTS.backpack.name);
-      expect(await productDetailPage.getName()).toBe(PRODUCTS.backpack.name);
+      await expect(productDetailPage.productName).toHaveText(
+        PRODUCTS.backpack.name,
+      );
 
       // Use the menu to go back to All Items
       await menuComponent.goToAllItems();
-      expect(await authenticatedPage.getPageTitle()).toBe('Products');
+      await expect(authenticatedPage.pageTitle).toHaveText('Products');
     });
   });
 
@@ -48,7 +50,7 @@ test.describe('Side Menu', { tag: '@regression' }, () => {
       { tag: '@smoke' },
       async ({ authenticatedPage, menuComponent, page }) => {
         // Start from a logged-in page so the side menu is available.
-        expect(await authenticatedPage.getPageTitle()).toBe('Products');
+        await expect(authenticatedPage.pageTitle).toHaveText('Products');
 
         await menuComponent.logout();
         await expect(page).toHaveURL('https://www.saucedemo.com/');

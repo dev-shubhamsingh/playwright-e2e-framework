@@ -36,7 +36,7 @@ test.describe('Checkout', { tag: '@regression' }, () => {
         await test.step('Add item and open cart', async () => {
           await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
           await authenticatedPage.goToCart();
-          expect(await cartPage.getItemCount()).toBe(1);
+          await expect(cartPage.cartItems).toHaveCount(1);
         });
 
         await test.step('Proceed through customer info', async () => {
@@ -49,23 +49,23 @@ test.describe('Checkout', { tag: '@regression' }, () => {
         });
 
         await test.step('Verify order overview and place order', async () => {
-          expect(await checkoutOverviewPage.getPageTitle()).toBe(
+          await expect(checkoutOverviewPage.pageTitle).toHaveText(
             'Checkout: Overview',
           );
-          expect(await checkoutOverviewPage.getItemCount()).toBe(1);
+          await expect(checkoutOverviewPage.cartItems).toHaveCount(1);
           await checkoutOverviewPage.finish();
         });
 
         await test.step('Verify order confirmation', async () => {
-          expect(await checkoutCompletePage.getPageTitle()).toBe(
+          await expect(checkoutCompletePage.pageTitle).toHaveText(
             'Checkout: Complete!',
           );
-          expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
+          await expect(checkoutCompletePage.confirmationHeader).toContainText(
             'Thank you for your order',
           );
-          // Web-first, not `expect(await …isVisible()).toBe(true)`: the
-          // confirmation image has zero height until its resource loads, so a
-          // one-shot read races the load and fails intermittently. This retries.
+          // A locator matcher, because it retries. The confirmation image has
+          // zero height until its resource loads, so any one-shot read — whether
+          // `expect(await …isVisible())` or `.resolves` — races the load.
           await expect(checkoutCompletePage.confirmationImage).toBeVisible();
         });
       },
@@ -96,9 +96,9 @@ test.describe('Checkout', { tag: '@regression' }, () => {
         customer.postalCode,
       );
 
-      expect(await checkoutOverviewPage.getItemCount()).toBe(items.length);
+      await expect(checkoutOverviewPage.cartItems).toHaveCount(items.length);
       await checkoutOverviewPage.finish();
-      expect(await checkoutCompletePage.getConfirmationHeader()).toContain(
+      await expect(checkoutCompletePage.confirmationHeader).toContainText(
         'Thank you for your order',
       );
     });
@@ -129,17 +129,23 @@ test.describe('Checkout', { tag: '@regression' }, () => {
       );
 
       await test.step('Verify item subtotal', async () => {
-        expect(await checkoutOverviewPage.getItemTotal()).toBe(
-          expectedSubtotal,
-        );
+        // Derived from the rendered label, so polled: the value is parsed out of
+        // text, and there is no single locator whose content equals the number.
+        await expect
+          .poll(() => checkoutOverviewPage.getItemTotal())
+          .toBe(expectedSubtotal);
       });
 
       await test.step('Verify 8% tax', async () => {
-        expect(await checkoutOverviewPage.getTax()).toBe(expectedTax);
+        await expect
+          .poll(() => checkoutOverviewPage.getTax())
+          .toBe(expectedTax);
       });
 
       await test.step('Verify grand total = subtotal + tax', async () => {
-        expect(await checkoutOverviewPage.getOrderTotal()).toBe(expectedTotal);
+        await expect
+          .poll(() => checkoutOverviewPage.getOrderTotal())
+          .toBe(expectedTotal);
       });
     });
   });
@@ -184,8 +190,8 @@ test.describe('Checkout', { tag: '@regression' }, () => {
           customer.postalCode,
         );
 
-        expect(await checkoutInfoPage.hasError()).toBe(true);
-        expect(await checkoutInfoPage.getErrorMessage()).toContain(error);
+        await expect(checkoutInfoPage.errorMessage).toBeVisible();
+        await expect(checkoutInfoPage.errorMessage).toContainText(error);
       });
     }
   });
@@ -201,7 +207,7 @@ test.describe('Checkout', { tag: '@regression' }, () => {
       await cartPage.checkout();
       await checkoutInfoPage.cancel();
 
-      expect(await cartPage.getPageTitle()).toBe('Your Cart');
+      await expect(cartPage.pageTitle).toHaveText('Your Cart');
     });
 
     test('cancel on overview page returns to inventory', async ({
@@ -222,7 +228,7 @@ test.describe('Checkout', { tag: '@regression' }, () => {
       );
       await checkoutOverviewPage.cancel();
 
-      expect(await authenticatedPage.getPageTitle()).toBe('Products');
+      await expect(authenticatedPage.pageTitle).toHaveText('Products');
     });
   });
 
@@ -247,7 +253,7 @@ test.describe('Checkout', { tag: '@regression' }, () => {
       await checkoutOverviewPage.finish();
       await checkoutCompletePage.backToHome();
 
-      expect(await authenticatedPage.getPageTitle()).toBe('Products');
+      await expect(authenticatedPage.pageTitle).toHaveText('Products');
     });
   });
 });

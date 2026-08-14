@@ -19,27 +19,30 @@ test.describe('Inventory', { tag: '@regression' }, () => {
       'displays all six products',
       { tag: '@smoke' },
       async ({ authenticatedPage }) => {
-        expect(await authenticatedPage.getProductCount()).toBe(PRODUCT_COUNT);
+        await expect(authenticatedPage.productList).toHaveCount(PRODUCT_COUNT);
       },
     );
 
     test('page title reads "Products"', async ({ authenticatedPage }) => {
-      expect(await authenticatedPage.getPageTitle()).toBe('Products');
+      await expect(authenticatedPage.pageTitle).toHaveText('Products');
     });
 
     test('all expected product names are present', async ({
       authenticatedPage,
     }) => {
-      const names = await authenticatedPage.getProductNames();
-      for (const product of Object.values(PRODUCTS)) {
-        expect(names).toContain(product.name);
-      }
+      await expect
+        .poll(() => authenticatedPage.getProductNames())
+        .toEqual(
+          expect.arrayContaining(
+            Object.values(PRODUCTS).map((product) => product.name),
+          ),
+        );
     });
 
     test('cart badge is hidden when cart is empty', async ({
       authenticatedPage,
     }) => {
-      expect(await authenticatedPage.isCartBadgeVisible()).toBe(false);
+      await expect(authenticatedPage.cartBadge).toBeHidden();
     });
   });
 
@@ -83,7 +86,7 @@ test.describe('Inventory', { tag: '@regression' }, () => {
       { tag: '@smoke' },
       async ({ authenticatedPage }) => {
         await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
-        expect(await authenticatedPage.getCartCount()).toBe(1);
+        await expect(authenticatedPage.cartBadge).toHaveText('1');
       },
     );
 
@@ -93,7 +96,7 @@ test.describe('Inventory', { tag: '@regression' }, () => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
       await authenticatedPage.addToCartByName(PRODUCTS.onesie.name);
-      expect(await authenticatedPage.getCartCount()).toBe(3);
+      await expect(authenticatedPage.cartBadge).toHaveText('3');
     });
 
     test('removing a product decrements the cart badge', async ({
@@ -101,20 +104,20 @@ test.describe('Inventory', { tag: '@regression' }, () => {
     }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
-      expect(await authenticatedPage.getCartCount()).toBe(2);
+      await expect(authenticatedPage.cartBadge).toHaveText('2');
 
       await authenticatedPage.removeFromCartByName(PRODUCTS.backpack.name);
-      expect(await authenticatedPage.getCartCount()).toBe(1);
+      await expect(authenticatedPage.cartBadge).toHaveText('1');
     });
 
     test('badge disappears after removing the last item', async ({
       authenticatedPage,
     }) => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
-      expect(await authenticatedPage.getCartCount()).toBe(1);
+      await expect(authenticatedPage.cartBadge).toHaveText('1');
 
       await authenticatedPage.removeFromCartByName(PRODUCTS.backpack.name);
-      expect(await authenticatedPage.isCartBadgeVisible()).toBe(false);
+      await expect(authenticatedPage.cartBadge).toBeHidden();
     });
   });
 
@@ -124,7 +127,9 @@ test.describe('Inventory', { tag: '@regression' }, () => {
       productDetailPage,
     }) => {
       await authenticatedPage.openProductByName(PRODUCTS.backpack.name);
-      expect(await productDetailPage.getName()).toBe(PRODUCTS.backpack.name);
+      await expect(productDetailPage.productName).toHaveText(
+        PRODUCTS.backpack.name,
+      );
     });
   });
 });

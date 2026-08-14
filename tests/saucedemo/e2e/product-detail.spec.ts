@@ -20,17 +20,24 @@ test.describe('Product Detail', { tag: '@regression' }, () => {
       'shows the correct product name',
       { tag: '@smoke' },
       async ({ productDetailPage }) => {
-        expect(await productDetailPage.getName()).toBe(PRODUCTS.backpack.name);
+        await expect(productDetailPage.productName).toHaveText(
+          PRODUCTS.backpack.name,
+        );
       },
     );
 
     test('shows the correct product price', async ({ productDetailPage }) => {
-      expect(await productDetailPage.getPrice()).toBe(PRODUCTS.backpack.price);
+      // The rendered price carries a currency prefix; assert the value the
+      // page object parses, polled so a late render does not fail the read.
+      await expect
+        .poll(() => productDetailPage.getPrice())
+        .toBe(PRODUCTS.backpack.price);
     });
 
     test('shows a non-empty description', async ({ productDetailPage }) => {
-      const description = await productDetailPage.getDescription();
-      expect(description.length).toBeGreaterThan(0);
+      await expect
+        .poll(async () => (await productDetailPage.getDescription()).length)
+        .toBeGreaterThan(0);
     });
   });
 
@@ -40,19 +47,19 @@ test.describe('Product Detail', { tag: '@regression' }, () => {
     }) => {
       await productDetailPage.addToCart();
 
-      expect(await productDetailPage.isRemoveVisible()).toBe(true);
-      expect(await productDetailPage.isAddToCartVisible()).toBe(false);
-      expect(await productDetailPage.getCartCount()).toBe(1);
+      await expect(productDetailPage.removeButton).toBeVisible();
+      await expect(productDetailPage.addToCartButton).toBeHidden();
+      await expect(productDetailPage.cartBadge).toHaveText('1');
     });
 
     test('remove from cart restores the Add button and clears badge', async ({
       productDetailPage,
     }) => {
       await productDetailPage.addToCart();
-      expect(await productDetailPage.getCartCount()).toBe(1);
+      await expect(productDetailPage.cartBadge).toHaveText('1');
 
       await productDetailPage.removeFromCart();
-      expect(await productDetailPage.isAddToCartVisible()).toBe(true);
+      await expect(productDetailPage.addToCartButton).toBeVisible();
     });
   });
 
@@ -62,7 +69,7 @@ test.describe('Product Detail', { tag: '@regression' }, () => {
       authenticatedPage,
     }) => {
       await productDetailPage.goBackToProducts();
-      expect(await authenticatedPage.getPageTitle()).toBe('Products');
+      await expect(authenticatedPage.pageTitle).toHaveText('Products');
     });
   });
 });

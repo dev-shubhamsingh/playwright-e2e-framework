@@ -74,8 +74,8 @@ test.describe('Login', { tag: '@regression' }, () => {
         });
 
         await test.step('Verify error message is shown', async () => {
-          expect(await loginPage.hasError()).toBe(true);
-          expect(await loginPage.getErrorMessage()).toContain(expectedError);
+          await expect(loginPage.errorMessage).toBeVisible();
+          await expect(loginPage.errorMessage).toContainText(expectedError);
         });
       });
     }
@@ -98,8 +98,8 @@ test.describe('Login', { tag: '@regression' }, () => {
         await expect(page).toHaveURL('https://www.saucedemo.com/');
 
         // Should show the specific locked-out error
-        expect(await loginPage.hasError()).toBe(true);
-        expect(await loginPage.getErrorMessage()).toContain(
+        await expect(loginPage.errorMessage).toBeVisible();
+        await expect(loginPage.errorMessage).toContainText(
           'Sorry, this user has been locked out',
         );
       });

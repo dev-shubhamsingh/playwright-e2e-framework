@@ -5,7 +5,12 @@ export class LoginPage extends BasePage {
   private readonly usernameInput: Locator = this.page.getByTestId('username');
   private readonly passwordInput: Locator = this.page.getByTestId('password');
   private readonly loginButton: Locator = this.page.getByTestId('login-button');
-  private readonly errorMessage: Locator = this.page.getByTestId('error');
+  /**
+   * The validation error banner. Public so negative tests can assert
+   * `toBeVisible()` and `toContainText(...)` web-first, rather than reading
+   * `hasError()` once and racing the render.
+   */
+  readonly errorMessage: Locator = this.page.getByTestId('error');
 
   /** Navigate to the login page (site root). */
   async goto() {

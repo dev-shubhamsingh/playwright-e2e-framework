@@ -3,12 +3,12 @@ import { parsePrice } from '@shared/utils';
 import { SauceDemoPage } from './SauceDemoPage';
 
 export class InventoryPage extends SauceDemoPage {
-  private readonly productList: Locator = this.page.locator('.inventory_item');
+  /** The product cards. Public for `toHaveCount` assertions. */
+  readonly productList: Locator = this.page.locator('.inventory_item');
   private readonly cartIcon: Locator =
     this.page.getByTestId('shopping-cart-link');
-  private readonly cartBadge: Locator = this.page.getByTestId(
-    'shopping-cart-badge',
-  );
+  /** The cart count badge. Public for `toHaveText` / `toBeVisible` / `toBeHidden`. */
+  readonly cartBadge: Locator = this.page.getByTestId('shopping-cart-badge');
   private readonly sortDropdown: Locator = this.page.getByTestId(
     'product-sort-container',
   );

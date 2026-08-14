@@ -49,9 +49,9 @@ test.describe('Accessibility (axe-core)', { tag: '@a11y' }, () => {
     authenticatedPage,
     page,
   }, testInfo) => {
-    await expect(authenticatedPage.getProductCount()).resolves.toBeGreaterThan(
-      0,
-    );
+    // Readiness gate before scanning: a locator matcher retries, so the scan
+    // never runs against a half-rendered page.
+    await expect(authenticatedPage.productList).not.toHaveCount(0);
     expect(await scanCriticals(page, testInfo, 'inventory')).toEqual([]);
   });
 
@@ -62,7 +62,7 @@ test.describe('Accessibility (axe-core)', { tag: '@a11y' }, () => {
   }, testInfo) => {
     await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
     await authenticatedPage.goToCart();
-    await expect(cartPage.getPageTitle()).resolves.toBe('Your Cart');
+    await expect(cartPage.pageTitle).toHaveText('Your Cart');
     expect(await scanCriticals(page, testInfo, 'cart')).toEqual([]);
   });
 
@@ -77,7 +77,7 @@ test.describe('Accessibility (axe-core)', { tag: '@a11y' }, () => {
     await authenticatedPage.goToCart();
     await cartPage.checkout();
     await checkoutInfoPage.fillAndContinue('Ada', 'Lovelace', '94043');
-    await expect(checkoutOverviewPage.getPageTitle()).resolves.toBe(
+    await expect(checkoutOverviewPage.pageTitle).toHaveText(
       'Checkout: Overview',
     );
     expect(await scanCriticals(page, testInfo, 'checkout-overview')).toEqual(
