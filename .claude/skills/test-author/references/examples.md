@@ -163,14 +163,14 @@ test.describe('Cart', { tag: '@regression' }, () => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
       await authenticatedPage.goToCart();
-      await expect(cartPage.getItemCount()).resolves.toBe(2);
+      await expect(cartPage.cartItems).toHaveCount(2);
 
       await cartPage.removeItem(PRODUCTS.backpack.name);
 
-      await expect(cartPage.getItemCount()).resolves.toBe(1);
-      await expect(cartPage.getItemNames()).resolves.not.toContain(
-        PRODUCTS.backpack.name,
-      );
+      await expect(cartPage.cartItems).toHaveCount(1);
+      await expect
+        .poll(() => cartPage.getItemNames())
+        .not.toContain(PRODUCTS.backpack.name);
     });
   });
 });
@@ -178,8 +178,9 @@ test.describe('Cart', { tag: '@regression' }, () => {
 
 - `authTest`, so the test starts logged in. No credentials anywhere.
 - Catalogue values from `@saucedemo/data/products`, not string literals.
-- **`await expect(promise).resolves.toBe(…)`**, not `expect(await …).toBe(…)`. The first
-  retries; the second reads once and fails on a slow paint.
+- **A locator matcher (`toHaveCount`) for element state; `expect.poll` for a derived
+  value.** Both retry. `expect(await …)` and `expect(…).resolves` do not — they are
+  equivalent one-shot reads, which is why the page object exposes `cartItems`.
 - Arrange / act / assert separated by blank lines, no comment labels.
 - A `@regression`-tagged outer `describe`, behavior-grouped inner `describe`.
 
@@ -291,7 +292,9 @@ test('inventory page has no new critical violations', async ({
   authenticatedPage,
   page,
 }, testInfo) => {
-  await expect(authenticatedPage.getProductCount()).resolves.toBeGreaterThan(0);
+  // Readiness gate, retried. The scan itself is a one-shot read on purpose: an axe
+  // result is the assertion, not a value that settles over time.
+  await expect(authenticatedPage.productList).not.toHaveCount(0);
   expect(await scanCriticals(page, testInfo, 'inventory')).toEqual([]);
 });
 ```
@@ -312,9 +315,7 @@ test.describe('Visual regression', { tag: '@visual' }, () => {
   } as const;
 
   test('inventory page', async ({ authenticatedPage, page }) => {
-    await expect(authenticatedPage.getProductCount()).resolves.toBeGreaterThan(
-      0,
-    );
+    await expect(authenticatedPage.productList).not.toHaveCount(0);
     await expect(page).toHaveScreenshot('inventory.png', shot);
   });
 });

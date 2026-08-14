@@ -69,7 +69,9 @@ tests/
 
 tars/                          # the product
   reporter/TarsReporter.ts     # Mission Control
-  engine/                      # select, quarantine, ledger, dashboard
+  engine/                      # select, quarantine, ledger, shadow, trend,
+                               #   drift, dashboard
+  history.jsonl                # committed run history (trend memory)
   lib/format.ts                # fmtMs, escapeHtml — shared by reporter + dashboard
 ```
 
@@ -201,6 +203,9 @@ npm run tars:select          # which specs does this diff affect?
 npm run tars:quarantine      # fold the last run's flakes into the ledger
 npm run tars:dashboard       # render tars-dashboard.html
 npm run tars:ledger          # surface the quarantine ledger
+npm run tars:shadow          # audit selection against what actually failed
+npm run tars:trend           # delta vs recent runs of the same scope
+npm run tars:drift           # verify the docs still match the repo
 ```
 
 Narrow before you run. `npx playwright test <path> --project=<name>` is almost

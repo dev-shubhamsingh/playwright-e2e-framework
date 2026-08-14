@@ -125,14 +125,23 @@ A `test.skip` with no ticket is not a quarantine, it is a deletion with extra st
 failure rate from everyone, including from Mission Control's flake detection, which is
 the only thing that would have surfaced the problem.
 
-### Known limitation — read this before relying on it
+### The ledger has a consumer — and it is not automatic
 
-The ledger is **written but not yet consumed.** Nothing auto-skips a quarantined test,
-and nothing surfaces the ledger in CI. Detection and record-keeping are closed; action
-is not.
+`npm run tars:ledger` reads it:
 
-So: when you record a flake in the ledger, that alone does not stop it failing the
-build. Say so. Do not describe the ledger as though it quarantines anything by itself.
+- **default** — renders it as Markdown, and in CI appends it to the run summary, so
+  quarantined tests are visible on the run page rather than buried in a JSON file.
+- **`--grep`** — prints a `--grep-invert` pattern excluding entries at or above a
+  flake threshold, so a pipeline can _opt into_ skipping them.
+- **`--check --fail-at N`** — exits non-zero when a test has flaked N+ times and is
+  still unresolved. CI runs this at 10, so a test cannot rot in quarantine forever.
+
+**Nothing auto-skips a test.** That is a deliberate refusal: silent auto-skipping is
+exactly how a quarantine ledger becomes a graveyard. Exclusion has to be asked for, in
+a step a reviewer can read.
+
+So recording a flake still does not stop it failing the build — say so. What has
+changed is that the ledger is now visible and has a deadline.
 
 ## Dashboard
 
@@ -151,16 +160,20 @@ message when the file is absent.
 Sense → Reason → Act, and it is worth knowing exactly where the loop is closed and
 where it is not:
 
-| Stage  | Mechanism                                        | Closed?                        |
-| ------ | ------------------------------------------------ | ------------------------------ |
-| Sense  | Reporter ingests every run's results and retries | ✅ Automatic, every run        |
-| Sense  | Selection reads the git diff                     | ✅ On demand                   |
-| Reason | Flake / pass-rate / risk signals computed        | ✅                             |
-| Reason | Governance docs applied by an agent              | ✅ Loaded as context           |
-| Act    | Brief + dashboard written                        | ✅                             |
-| Act    | Ledger updated                                   | ✅ On demand                   |
-| Act    | Selection used to scope a CI run                 | ❌ Not wired into any workflow |
-| Act    | Quarantined tests skipped or surfaced            | ❌ Ledger has no consumer      |
+| Stage  | Mechanism                                        | Closed?                                                |
+| ------ | ------------------------------------------------ | ------------------------------------------------------ |
+| Sense  | Reporter ingests every run's results and retries | ✅ Automatic, every run                                |
+| Sense  | Selection reads the git diff                     | ✅ On demand                                           |
+| Reason | Flake / pass-rate / risk signals computed        | ✅                                                     |
+| Reason | Governance docs applied by an agent              | ✅ Loaded as context                                   |
+| Act    | Brief + dashboard written                        | ✅                                                     |
+| Act    | Ledger updated                                   | ✅ On demand                                           |
+| Act    | Ledger surfaced in CI, plus a rot check          | ✅ `tars:ledger` in the `tars` job                     |
+| Sense  | Trend across runs, per scope                     | ✅ `tars:trend` + `tars/history.jsonl`                 |
+| Reason | Selection audited against real failures          | ✅ `tars:shadow` — fails on a miss                     |
+| Reason | Docs audited against the real repo               | ✅ `tars:drift` — in the shared gate                   |
+| Act    | Selection used to _narrow_ a CI run              | ◐ Reported and audited; the gate still runs everything |
+| Act    | Quarantined tests skipped automatically          | ○ Deliberately not automatic — see below               |
 
 When describing TARS, describe that table. The reporter genuinely runs on every suite;
 the engines genuinely work when invoked; **neither engine runs in CI**, so the

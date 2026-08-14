@@ -31,9 +31,7 @@ test.describe('Visual regression', { tag: '@visual' }, () => {
   } as const;
 
   test('inventory page', async ({ authenticatedPage, page }) => {
-    await expect(authenticatedPage.getProductCount()).resolves.toBeGreaterThan(
-      0,
-    );
+    await expect(authenticatedPage.productList).not.toHaveCount(0);
     await expect(page).toHaveScreenshot('inventory.png', shot);
   });
 });
@@ -46,8 +44,8 @@ Three details carry the reliability:
 - **`maxDiffPixelRatio: 0.01`** absorbs sub-pixel antialiasing noise. Tight enough to
   catch a real layout change, loose enough to survive a font-rendering nudge. Do not
   raise it to make a failing test pass — that erases the signal.
-- **Assert the page is ready first.** `getProductCount()` resolving above zero proves
-  content has loaded before the shot. A screenshot of a half-rendered page is a
+- **Assert the page is ready first, with a retrying matcher.** `not.toHaveCount(0)`
+  on the product list retries until content has loaded. A screenshot of a half-rendered page is a
   baseline you will fight forever.
 
 Shared `shot` options as one `as const` object keeps every snapshot in the suite
@@ -131,7 +129,7 @@ test('inventory page has no new critical violations', async ({
   authenticatedPage,
   page,
 }, testInfo) => {
-  await expect(authenticatedPage.getProductCount()).resolves.toBeGreaterThan(0);
+  await expect(authenticatedPage.productList).not.toHaveCount(0);
   expect(await scanCriticals(page, testInfo, 'inventory')).toEqual([]);
 });
 ```

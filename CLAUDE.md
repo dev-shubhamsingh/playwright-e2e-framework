@@ -75,6 +75,9 @@ npm run tars:select       # which specs does this diff affect?
 npm run tars:quarantine   # fold the last run's flakes into the ledger
 npm run tars:dashboard    # render tars-dashboard.html
 npm run tars:ledger       # surface the quarantine ledger (--grep / --check)
+npm run tars:shadow       # would selection have skipped a spec that failed?
+npm run tars:trend        # delta vs recent runs of the same scope
+npm run tars:drift        # do the docs still describe the real repo?
 
 npm run typecheck && npm run lint && npm run format:check
 ```
@@ -101,16 +104,16 @@ way to orient in this repo. Full guide: [docs/TESTING-SKILLS.md](docs/TESTING-SK
 
 These are real, current gaps. Do not paper over them.
 
-| Gap                                                             | Detail                                                                                                                                                                                   |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~Framework code has no behavioral tests~~ — **closed**         | `npm run test:unit` — 129 tests over the helpers, `ApiClient`, the env schema, and the TARS engines/reporter/ledger. Gated as `test-unit`                                                |
-| **Visual regression is not gated**                              | Baselines are `*-darwin.png`; a Linux runner would fail every snapshot on antialiasing. Local guard only                                                                                 |
-| **WebKit and mobile time out on CI**                            | Every test hits 30 s on the runner while passing locally. Undiagnosed. Nightly and non-gating for this reason                                                                            |
-| **TARS selection does not narrow the gate**                     | The `tars` job runs selection and publishes it to the run summary, but CI still runs the full suite. Deliberate: a selection bug that silently skips tests is worse than a slow pipeline |
-| **Quarantine is surfaced, never automatic**                     | `npm run tars:ledger` renders it to the CI run summary and fails a job when a test has flaked 10+ times unresolved. Nothing auto-skips — that is how a ledger becomes a graveyard        |
-| **Pact is consumer-only**                                       | No broker, no provider verification — and none is achievable against a third-party target. Catches our drift, not theirs                                                                 |
-| **No real-device mobile**                                       | `mobile-chrome` / `mobile-safari` are device _emulation_. No native app exists to test                                                                                                   |
-| **Every gated suite except `test-contract` needs the internet** | A third-party outage reds the build. Check target reachability before diagnosing a code defect                                                                                           |
+| Gap                                                             | Detail                                                                                                                                                                                        |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~Framework code has no behavioral tests~~ — **closed**         | `npm run test:unit` — 129 tests over the helpers, `ApiClient`, the env schema, and the TARS engines/reporter/ledger. Gated as `test-unit`                                                     |
+| **Visual regression is not gated**                              | Baselines are `*-darwin.png`; a Linux runner would fail every snapshot on antialiasing. Local guard only                                                                                      |
+| **WebKit and mobile time out on CI**                            | Every test hits 30 s on the runner while passing locally. Undiagnosed. Nightly and non-gating for this reason                                                                                 |
+| **TARS selection does not narrow the gate**                     | CI publishes selection and shadow-audits it (`tars:shadow` fails on a miss), but still runs the full suite. It narrows the gate only once the audit has been clean across a run of red builds |
+| **Quarantine is surfaced, never automatic**                     | `npm run tars:ledger` renders it to the CI run summary and fails a job when a test has flaked 10+ times unresolved. Nothing auto-skips — that is how a ledger becomes a graveyard             |
+| **Pact is consumer-only**                                       | No broker, no provider verification — and none is achievable against a third-party target. Catches our drift, not theirs                                                                      |
+| **No real-device mobile**                                       | `mobile-chrome` / `mobile-safari` are device _emulation_. No native app exists to test                                                                                                        |
+| **Every gated suite except `test-contract` needs the internet** | A third-party outage reds the build. Check target reachability before diagnosing a code defect                                                                                                |
 
 ## Project memory
 

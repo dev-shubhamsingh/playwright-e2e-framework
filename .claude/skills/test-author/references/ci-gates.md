@@ -14,7 +14,7 @@ before a single browser launches.
 
 | Job             | Command                                                                                             | Gates a pull request?                                                               |
 | --------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `typecheck`     | `npx tsc --noEmit`                                                                                  | **Yes** — the shared gate                                                           |
+| `typecheck`     | `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm run tars:drift`                    | **Yes** — the shared gate                                                           |
 | `test-ui`       | `npx playwright test --project=login --project=authenticated`                                       | **Yes**                                                                             |
 | `test-api`      | `npx playwright test --project=api`                                                                 | **Yes**                                                                             |
 | `test-contract` | `npm run test:contract`                                                                             | **Yes**                                                                             |
