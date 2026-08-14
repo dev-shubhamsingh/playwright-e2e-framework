@@ -70,8 +70,9 @@ The highest-value pass. Run it before anything cosmetic.
 # also matches the pagination field `body.skip` all over the API specs.
 rg -n '\b(test|describe|it)\.(skip|only|fixme)\b' tests/ src/
 
-# Manual reads where a retrying assertion exists — the local flake signature
-rg -n 'expect\(await ' tests/
+# One-shot reads where a retrying assertion exists — the local flake signature.
+# Both forms are one-shot: `.resolves` awaits a single promise, it does NOT retry.
+rg -n 'expect\(await |\)\.resolves\.' tests/
 
 # Arbitrary waits and bumped timeouts
 rg -n 'waitForTimeout|setTimeout\(|timeout:\s*[0-9]{4,}' tests/
@@ -104,24 +105,24 @@ rg -n 'process\.env' src/ tests/ tars/ --glob '!src/core/config/env.ts'
 
 ### The false-coverage taxonomy
 
-| Finding                                                                  | Why it is false coverage                                                     | Fix                                                                  |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Spec no project matches**                                              | Never executes. Check `testMatch` / `testDir` in the config                  | Move it into a matched tree, or say it is dead                       |
-| **Spec in `UI_TEST_IGNORE` assumed cross-browser**                       | Silently excluded from `firefox`/`webkit`/mobile                             | Correct the claim, or add the project                                |
-| **Visual spec described as CI coverage**                                 | The `visual` project is not gated; baselines are macOS-only                  | State it is a local guard                                            |
-| **`test.skip` with no ticket, reason, or owner**                         | Permanent, invisible gap                                                     | Fix and unskip, or add all four elements of a real quarantine        |
-| **`test.only` committed**                                                | Silently skips every sibling locally. Highest-severity finding in this group | Remove immediately                                                   |
-| **`expect(await x()).toBe(…)` where a retrying form exists**             | One read, no retry — fails on a slow paint and reports as flake              | `await expect(x()).resolves.toBe(…)` or a locator matcher            |
-| **Status asserted, body never parsed**                                   | A `200` carrying an error payload passes                                     | Add `schema.parse(await res.json())`                                 |
-| **Body parsed, status never asserted**                                   | The right shape with the wrong code passes                                   | Assert the specific status                                           |
-| **A response assertion presented as proof a write persisted**            | Writes are simulated by the target; nothing persists                         | Assert response shape and computed values; state the depth limit     |
-| **Pact chain not awaited or returned**                                   | Green without ever running the interaction                                   | `await` the chain                                                    |
-| **Pact interaction with a hard-coded id or timestamp**                   | The contract claims we accept only that value                                | Use matchers                                                         |
-| **k6 script with no thresholds**                                         | Cannot fail; it only measures                                                | Add thresholds — they are the assertion                              |
-| **Accessibility suite ignoring all criticals, or a whole rule globally** | Discards the regression guard along with the known defect                    | Per-page, per-rule-id baseline                                       |
-| **A "regression test" that would have passed before the fix**            | Does not reproduce the bug                                                   | Run it against the old behavior                                      |
-| **Framework code assumed covered by `typecheck`**                        | Compilation is not behavior                                                  | See [framework-code.md](../test-author/references/framework-code.md) |
-| **A test asserting a value from today's demo dataset**                   | Breaks when the target's data drifts, for no real reason                     | Assert the invariant                                                 |
+| Finding                                                                       | Why it is false coverage                                                          | Fix                                                                                                       |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Spec no project matches**                                                   | Never executes. Check `testMatch` / `testDir` in the config                       | Move it into a matched tree, or say it is dead                                                            |
+| **Spec in `UI_TEST_IGNORE` assumed cross-browser**                            | Silently excluded from `firefox`/`webkit`/mobile                                  | Correct the claim, or add the project                                                                     |
+| **Visual spec described as CI coverage**                                      | The `visual` project is not gated; baselines are macOS-only                       | State it is a local guard                                                                                 |
+| **`test.skip` with no ticket, reason, or owner**                              | Permanent, invisible gap                                                          | Fix and unskip, or add all four elements of a real quarantine                                             |
+| **`test.only` committed**                                                     | Silently skips every sibling locally. Highest-severity finding in this group      | Remove immediately                                                                                        |
+| **`expect(await x()).toBe(…)` or `.resolves` where a locator matcher exists** | Both read once; neither retries, so both fail on a slow paint and report as flake | Expose the `Locator`, use `toHaveText` / `toHaveCount` / `toBeVisible`; `expect.poll` for a derived value |
+| **Status asserted, body never parsed**                                        | A `200` carrying an error payload passes                                          | Add `schema.parse(await res.json())`                                                                      |
+| **Body parsed, status never asserted**                                        | The right shape with the wrong code passes                                        | Assert the specific status                                                                                |
+| **A response assertion presented as proof a write persisted**                 | Writes are simulated by the target; nothing persists                              | Assert response shape and computed values; state the depth limit                                          |
+| **Pact chain not awaited or returned**                                        | Green without ever running the interaction                                        | `await` the chain                                                                                         |
+| **Pact interaction with a hard-coded id or timestamp**                        | The contract claims we accept only that value                                     | Use matchers                                                                                              |
+| **k6 script with no thresholds**                                              | Cannot fail; it only measures                                                     | Add thresholds — they are the assertion                                                                   |
+| **Accessibility suite ignoring all criticals, or a whole rule globally**      | Discards the regression guard along with the known defect                         | Per-page, per-rule-id baseline                                                                            |
+| **A "regression test" that would have passed before the fix**                 | Does not reproduce the bug                                                        | Run it against the old behavior                                                                           |
+| **Framework code assumed covered by `typecheck`**                             | Compilation is not behavior                                                       | See [framework-code.md](../test-author/references/framework-code.md)                                      |
+| **A test asserting a value from today's demo dataset**                        | Breaks when the target's data drifts, for no real reason                          | Assert the invariant                                                                                      |
 
 ## Step 3 — Then the standards pass
 
@@ -130,7 +131,7 @@ Against `tars/test-patterns.md` and the anti-pattern catalog:
 **Reliability**
 
 - No `waitForTimeout`, no arbitrary sleeps, no per-test timeout bumps.
-- Every assertion web-first or a retried promise assertion.
+- Every assertion a locator matcher or `expect.poll`; no one-shot reads (`.resolves` included).
 - No order dependence — each test must pass alone and in parallel.
 - Fresh data per test via `TestDataFactory`; no shared mutable state.
 - No teardown that resets state a crashed test would skip.
@@ -235,10 +236,10 @@ How much of the apparent coverage is real?>
 
 ## False coverage
 
-| #   | File:line         | Finding                                                                     | Severity | Action                                         |
-| --- | ----------------- | --------------------------------------------------------------------------- | -------- | ---------------------------------------------- |
-| 1   | `cart.spec.ts:23` | `expect(await cartPage.getItemCount()).toBe(2)` — single read, cannot retry | High     | Fixed — `await expect(...).resolves.toBe(2)`   |
-| 2   | `tests/unit/`     | No project matches; `typecheck` is the only gate on framework code          | High     | Reported — needs a `unit` project and a CI job |
+| #   | File:line         | Finding                                                                     | Severity | Action                                                 |
+| --- | ----------------- | --------------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
+| 1   | `cart.spec.ts:23` | `expect(await cartPage.getItemCount()).toBe(2)` — single read, cannot retry | High     | Fixed — exposed `cartItems`, asserted `toHaveCount(2)` |
+| 2   | `tests/unit/`     | No project matches; `typecheck` is the only gate on framework code          | High     | Reported — needs a `unit` project and a CI job         |
 
 ## Standards findings
 

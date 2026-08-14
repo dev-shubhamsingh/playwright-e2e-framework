@@ -167,8 +167,8 @@ Evidence-based, not vibes.
 - It fails at a different point each run.
 - It passes in isolation and fails in the full suite, or the reverse.
 - The failure rate tracks runner load rather than code changes.
-- The spec reads a value manually (`expect(await …)`) instead of using a retrying
-  assertion.
+- The spec reads a value once — `expect(await …)` **or** `expect(…).resolves`, which are
+  equivalent — instead of a locator matcher or `expect.poll`.
 - It is already in `tars/quarantine.json` with a `flakeCount` above 1.
 
 ### The decisive test — burn-in
@@ -212,18 +212,18 @@ recurring causes in this repo:
 
 ### Playwright flake
 
-| Cause                                                         | Evidence                                       | Fix                                                                      |
-| ------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
-| `expect(await pageObject.getX()).toBe(…)`                     | Grep the spec. **The most common defect here** | `await expect(pageObject.getX()).resolves.toBe(…)`, or a locator matcher |
-| `page.waitForTimeout(…)`                                      | Grep the spec                                  | Assert the state you are actually waiting for                            |
-| A route registered after the action that triggers the request | Order in the spec                              | Move `page.route()` before the action                                    |
-| Asserting absence with no preceding positive assertion        | The spec reads "act, then assert not-visible"  | Assert a positive post-action state first                                |
-| A weak locator matching more than one element                 | The error names a strict-mode violation        | Scope to a container, or use a role locator                              |
-| Clicking through an animation                                 | The video shows the target moving              | Assert visible **and** enabled first                                     |
-| Order dependence                                              | Passes alone, fails in-suite                   | Arrange everything the test needs; never rely on a sibling               |
-| Shared static data mutated by two tests                       | Two specs use the same literal                 | `TestDataFactory`                                                        |
-| The `setup` project's session going stale mid-run             | Late tests fail auth, early ones pass          | Check `.auth/standard_user.json` freshness and the setup dependency      |
-| A test asserting a value from the demo dataset                | It broke with no code change                   | Assert the invariant instead                                             |
+| Cause                                                         | Evidence                                                             | Fix                                                                                                       |
+| ------------------------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `expect(await pageObject.getX()).toBe(…)` or `.resolves`      | Grep the spec. **The most common defect here.** Neither form retries | Expose the `Locator`, use `toHaveText` / `toHaveCount` / `toBeVisible`; `expect.poll` for a derived value |
+| `page.waitForTimeout(…)`                                      | Grep the spec                                                        | Assert the state you are actually waiting for                                                             |
+| A route registered after the action that triggers the request | Order in the spec                                                    | Move `page.route()` before the action                                                                     |
+| Asserting absence with no preceding positive assertion        | The spec reads "act, then assert not-visible"                        | Assert a positive post-action state first                                                                 |
+| A weak locator matching more than one element                 | The error names a strict-mode violation                              | Scope to a container, or use a role locator                                                               |
+| Clicking through an animation                                 | The video shows the target moving                                    | Assert visible **and** enabled first                                                                      |
+| Order dependence                                              | Passes alone, fails in-suite                                         | Arrange everything the test needs; never rely on a sibling                                                |
+| Shared static data mutated by two tests                       | Two specs use the same literal                                       | `TestDataFactory`                                                                                         |
+| The `setup` project's session going stale mid-run             | Late tests fail auth, early ones pass                                | Check `.auth/standard_user.json` freshness and the setup dependency                                       |
+| A test asserting a value from the demo dataset                | It broke with no code change                                         | Assert the invariant instead                                                                              |
 
 ### API flake
 

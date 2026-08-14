@@ -165,9 +165,24 @@ with 400'`, never `'test login'` or `'renders'`. Start with a verb, state the ou
 - **Arrange / act / assert separated by blank lines.** No literal comment labels — the
   existing suites don't use them.
 - **Import the domain fixture**, never `@playwright/test` directly in a domain spec.
-- **Web-first assertions.** `await expect(locator).toBeVisible()` or
-  `await expect(pageObject.getThing()).resolves.toBe(…)`. Never
-  `expect(await …).toBe(…)` when a retrying form exists — the manual read cannot retry.
+- **Web-first assertions.** Locator matchers auto-retry; nothing else does.
+
+  ```ts
+  // BEST — locator matchers retry until the timeout
+  await expect(cartPage.items).toHaveCount(2);
+  await expect(cartPage.title).toHaveText('Your Cart');
+  await expect(loginPage.errorMessage).toBeVisible();
+
+  // WHEN THE VALUE IS DERIVED (parsed, summed, filtered) and no single locator
+  // holds it — expect.poll re-invokes the function until it matches
+  await expect.poll(() => cartPage.getItemPrices()).toContain(29.99);
+
+  // NEITHER OF THESE RETRIES. They are equivalent, and `.resolves` is not an
+  // improvement — it awaits one promise, exactly like the manual read.
+  expect(await cartPage.getItemCount()).toBe(2);
+  await expect(cartPage.getItemCount()).resolves.toBe(2);
+  ```
+
 - **Tags:** `@regression` on every feature `describe`; `@smoke` on exactly one happy-path
   test per area. Do not invent a third tag without saying so.
 

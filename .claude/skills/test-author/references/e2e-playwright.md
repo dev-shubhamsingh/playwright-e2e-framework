@@ -20,22 +20,29 @@ mechanics and the local topology.
    pre-auth — use it only where the test must control its own session, which today
    means `login.spec.ts`.
 
-2. **Web-first assertions, always.** `await expect(locator).toBeVisible()` retries
-   until the timeout. A manual read cannot retry:
+2. **Only two things retry: locator matchers and `expect.poll`.** Everything else
+   reads once.
 
    ```ts
-   // Wrong — one read, fails on a slow paint
+   // BEST — a locator matcher retries until the timeout
+   await expect(cartPage.cartItems).toHaveCount(2);
+   await expect(cartPage.pageTitle).toHaveText('Your Cart');
+   await expect(loginPage.errorMessage).toBeVisible();
+
+   // DERIVED VALUE (parsed, summed, filtered) with no single locator holding it
+   await expect.poll(() => cartPage.getItemPrices()).toContain(29.99);
+
+   // NEITHER OF THESE RETRIES. They are equivalent — `.resolves` awaits one
+   // promise, exactly like the manual read. It is not an improvement.
    expect(await cartPage.getItemCount()).toBe(2);
-
-   // Right — the promise is retried
    await expect(cartPage.getItemCount()).resolves.toBe(2);
-
-   // Better — assert on the locator where the page object exposes one
-   await expect(cartPage.items).toHaveCount(2);
    ```
 
+   So a page object should **expose the `Locator`** for anything a spec asserts on,
+   and keep its value-returning method for the cases that genuinely need a value.
+
 3. **No arbitrary waits.** No `page.waitForTimeout()`. Wait for state:
-   `waitForURL`, `waitForResponse`, or a web-first assertion.
+   `waitForURL`, `waitForResponse`, or a locator matcher.
 
 4. **Locators live in page objects.** A spec that contains a CSS selector is a
    review finding.
@@ -177,14 +184,14 @@ test.describe('Cart', { tag: '@regression' }, () => {
       await authenticatedPage.addToCartByName(PRODUCTS.backpack.name);
       await authenticatedPage.addToCartByName(PRODUCTS.bikeLight.name);
       await authenticatedPage.goToCart();
-      await expect(cartPage.getItemCount()).resolves.toBe(2);
+      await expect(cartPage.cartItems).toHaveCount(2);
 
       await cartPage.removeItem(PRODUCTS.backpack.name);
 
-      await expect(cartPage.getItemCount()).resolves.toBe(1);
-      await expect(cartPage.getItemNames()).resolves.not.toContain(
-        PRODUCTS.backpack.name,
-      );
+      await expect(cartPage.cartItems).toHaveCount(1);
+      await expect
+        .poll(() => cartPage.getItemNames())
+        .not.toContain(PRODUCTS.backpack.name);
     });
   });
 });
@@ -276,7 +283,8 @@ one, say so plainly and name what you did not execute. Never imply a suite passe
 - [ ] Imports `authTest` from `@saucedemo/fixtures`; no direct `@playwright/test`.
 - [ ] No login inside the test.
 - [ ] All locators in page objects; role-first, then test id.
-- [ ] Every assertion is web-first or a retried promise assertion.
+- [ ] Every assertion is a locator matcher or `expect.poll` — no one-shot reads
+      (`expect(await …)` and `.resolves` are both one-shot).
 - [ ] No `waitForTimeout`, no bumped timeout, no reliance on retries.
 - [ ] Titles state observable behavior.
 - [ ] Outer `describe` tagged `@regression`; `@smoke` only if this is the area's

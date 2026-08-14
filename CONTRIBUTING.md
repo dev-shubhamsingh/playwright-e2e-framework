@@ -54,9 +54,10 @@ These are not style preferences.
   If a test surfaces a real defect, report it — don't edit the test to agree.
 - **No invented capability in docs.** Every `✅` in a table must be runnable from a
   `package.json` script. Designed-but-unshipped is `◐` or `○`.
-- **Web-first assertions.** `await expect(locator).toBeVisible()` or
-  `await expect(pageObject.getThing()).resolves.toBe(…)`. A manual
-  `expect(await …)` read cannot retry.
+- **Web-first assertions.** Locator matchers (`toHaveText`, `toHaveCount`,
+  `toBeVisible`) auto-retry. For a derived value with no single locator, use
+  `expect.poll(() => pageObject.getX())`. Note that **`expect(promise).resolves`
+  does NOT retry** — it awaits one promise, exactly like `expect(await …)`.
 - **Locators live in page objects**, role-first, then `data-test` via `getByTestId`.
   Never a CSS class or XPath.
 - **Assert status _and_ schema** on every API response. Both halves.
