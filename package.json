@@ -68,7 +68,7 @@
     "@types/node": "^25.9.2",
     "allure-playwright": "^3.10.2",
     "dotenv": "^17.4.2",
-    "eslint": "^10.8.1",
+    "eslint": "^10.9.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-playwright": "^2.11.0",
     "husky": "^9.1.7",
